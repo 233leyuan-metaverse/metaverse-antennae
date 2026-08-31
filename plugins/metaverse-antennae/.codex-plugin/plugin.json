@@ -1,0 +1,26 @@
+{
+  "name": "metaverse-antennae",
+  "version": "0.2.0",
+  "description": "Inspect and operate the Buildmode editor through the local SideAPI bridge with verified semantic tools, native UI workflows, and custom user-component logic.",
+  "author": {
+    "name": "Buildmode"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Buildmode Editor",
+    "shortDescription": "Build and verify Buildmode editor content with SideAPI.",
+    "longDescription": "Connects Codex to the local Buildmode editor, exposes semantic SideAPI tools, and initializes project-owned CLI skills and API declarations with explicit version checks.",
+    "developerName": "Buildmode",
+    "category": "DeveloperTools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Inspect the current Buildmode scene without changing it.",
+      "Build this gameplay feature and verify every editor write.",
+      "Implement the required runtime logic with a verified custom user component."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}

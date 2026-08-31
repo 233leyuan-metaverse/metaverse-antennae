@@ -1,0 +1,20 @@
+{
+  "name": "metaverse-antennae",
+  "interface": {
+    "displayName": "Buildmode Team"
+  },
+  "plugins": [
+    {
+      "name": "metaverse-antennae",
+      "source": {
+        "source": "local",
+        "path": "./plugins/metaverse-antennae"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

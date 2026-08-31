@@ -1,0 +1,3122 @@
+{
+  "fragments": {
+    "AIGameCustomPropertyCommandEventDataInfo": {
+      "domains": [
+        "gameData"
+      ],
+      "syntax": "[gameData] {\n  \"__type__\": \"AIGameCustomPropertyCommandEventDataInfo\",\n  \"operationType\": 0,\n  \"uuid\": \"world_boss_hp\",\n  \"displayName\": \"世界BOSS血量\",\n  \"type\": \"NumberInput\",\n  \"value\": 10000,\n  \"saveKV\": true\n}\n[gameData] {\n  \"__type__\": \"AIGameCustomPropertyCommandEventDataInfo\",\n  \"operationType\": 0,\n  \"uuid\": \"global_notice\",\n  \"displayName\": \"全服公告\",\n  \"type\": \"SingleLineText\",\n  \"value\": \"\",\n  \"saveKV\": true,\n  \"isPushBroadcast\": true\n}",
+      "encoding": "mixed",
+      "shared_notes": [
+        "游戏数据=全游戏共享一份；每玩家独立值用 AIUserCustomPropertyCommandEventDataInfo(userData)，场景对象属性用 AICustomPropertyCommandEventDataInfo(customData)。写前必须 sideapi_inspect(operation=\"inspectGameData\") 确认字段存在性；isPushBroadcast:true 时运行时强制 saveKV:true。运行态积木读写游戏数据暂未开放，禁止编造 game_properties 路径或 GamePropertyInstruction。",
+        "Contract semantic tools 的 expectedReadback 只能用 kind:\"gameDataKey\" + 对象 target {\"uuid\":\"...\"}（最简写法即可，执行服务从 step 自动推导期望）；expectedReadback 是 chunk 级数组、与 steps 平级，禁止塞进 step 内部；禁止 playerDataKey/gameConfig/裸字符串 target。execute 判 failed/READBACK_MISMATCH 后编辑器可能已实际写入：重试前必须先 inspectGameData 确认，已存在则改 operationType:2 或先删再建，禁止盲目重发 operationType:0 造成重复字段。（2026-08-03 联调补）",
+        "type 必须照 whitelist 类型表逐字取值（SSOT=客户端 GAME_DATA_TYPE_OPTIONS 共13种）：开关=ToggleButton（没有 Switch 类型）、文本=SingleLineText、数字=NumberInput、大数=BigNumberInput（禁止降级为 NumberInput；value 与 UGC 一致 number/string 均可，inspect 回读 string）；禁止 RelativePosition/WorldPosition；Date 定义处 value 一律填 0；「全服公告」等跨房语义须 isPushBroadcast:true。（2026-08-03 二轮联调补；2026-08-03 code review 补类型表与公告示例）"
+      ]
+    },
+    "AIUserCustomPropertyCommandEventDataInfo": {
+      "domains": [
+        "userData"
+      ],
+      "syntax": "[userData] {\n  \"__type__\": \"AIUserCustomPropertyCommandEventDataInfo\",\n  \"operationType\": 0,\n  \"uuid\": \"score\",\n  \"displayName\": \"score\",\n  \"type\": \"NumberInput\",\n  \"value\": 0,\n  \"saveKV\": true\n}\n[userData] {\n  \"__type__\": \"AIUserCustomPropertyCommandEventDataInfo\",\n  \"operationType\": 0,\n  \"uuid\": \"sect\",\n  \"displayName\": \"宗门\",\n  \"type\": \"SingleLineText\",\n  \"value\": \"\",\n  \"saveKV\": true\n}",
+      "encoding": "mixed",
+      "shared_notes": []
+    },
+    "ActivateAbilityInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "combat",
+        "skillMgr"
+      ],
+      "syntax": "| `ActivateAbilityInstruction` | 释放技能 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: target, ability | abilityId: `instruction.__80001/__80002/ActivateAbilityInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AddAbilityCommandEventDataInfo": {
+      "domains": [
+        "basic",
+        "interactive",
+        "touchDetector"
+      ],
+      "syntax": "{ \"__type__\": \"AddAbilityCommandEventDataInfo\", \"gameObjectId\": \"target_id\", \"abilityName\": \"health\" }",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "AddCurrencyInstruction_V2": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `AddCurrencyInstruction_V2` | 增减背包货币 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, currencyKey, arg3, count, mathType, showPopup | abilityId: `instruction.__80090/__80143/AddCurrencyInstruction_V2` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AddExpInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "combat",
+        "level"
+      ],
+      "syntax": "| `AddExpInstruction` | 增加经验 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, target | abilityId: `instruction.__80079/__80567/AddExpInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AddLevelInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "combat",
+        "level"
+      ],
+      "syntax": "| `AddLevelInstruction` | 升级 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity | abilityId: `instruction.__80079/__80567/AddLevelInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AddMovementInstruction_New": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `AddMovementInstruction_New` | 按方向移动 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, direction, duration | abilityId: `instruction.__80079/__80280/AddMovementInstruction_New` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AddRelativeFacingMovementInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `AddRelativeFacingMovementInstruction` | 相对朝向位移 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, direction, distance, duration, basedOnScreen | abilityId: `instruction.__80059/__80297/AddRelativeFacingMovementInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ApplyBuffInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "combat",
+        "buffEdit",
+        "skillMgr"
+      ],
+      "syntax": "| `ApplyBuffInstruction` | 添加BUFF | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, buffFromBuffList, source | abilityId: `instruction.__80001/__80012/ApplyBuffInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": [
+        "ApplyBuff owner：Buff 生命周期 index:0=Buff 载体；给触发者/碰撞实体加 Buff 时用 index:1，勿误用 index:0。"
+      ]
+    },
+    "ApplyDamageInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "combat",
+        "skillMgr"
+      ],
+      "syntax": "| `ApplyDamageInstruction` | 造成伤害 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, damage, criticalChance, criticalMultiplier, source | abilityId: `instruction.__80001/__80015/ApplyDamageInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ApplyKnockBackInstruction_m2cm": {
+      "domains": [
+        "blockly-dsl",
+        "combat",
+        "skillMgr",
+        "weapon"
+      ],
+      "syntax": "| `ApplyKnockBackInstruction_m2cm` | 击退效果 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, knockBackMag, knockBackTime, knockBackDirection, source | abilityId: `instruction.__80001/__80012/ApplyKnockBackInstruction_m2cm` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ArchiveInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basic"
+      ],
+      "syntax": "| `ArchiveInstruction` | 存档点 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: target, positionOffset, rotationOffsetZ, persistent, isLocal | abilityId: `instruction.__80024/__80025/ArchiveInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CameraAngleLimitInstructionNew": {
+      "domains": [
+        "blockly-dsl",
+        "cameraMovement",
+        "playerstart"
+      ],
+      "syntax": "| `CameraAngleLimitInstructionNew` | 相机最大垂直角度限制 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, verticalDirection, verticalAngle, horizontalDirection, horizontalAngle | abilityId: `instruction.__80028/CameraAngleLimitInstructionNew` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CameraFixedElevationInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "cameraMovement",
+        "playerstart"
+      ],
+      "syntax": "| `CameraFixedElevationInstruction` | 固定相机高度 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, bEnabled | abilityId: `instruction.__80028/CameraFixedElevationInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CameraFovInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "cameraMovement",
+        "playerstart"
+      ],
+      "syntax": "| `CameraFovInstruction` | 设置视野范围(FOV) | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, fov | abilityId: `instruction.__80028/CameraFovInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CameraSpringArmLengthInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "cameraMovement",
+        "playerstart"
+      ],
+      "syntax": "| `CameraSpringArmLengthInstruction` | 设置相机距离 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, length | abilityId: `instruction.__80028/CameraSpringArmLengthInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CameraSpringArmPositionInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "cameraMovement",
+        "playerstart"
+      ],
+      "syntax": "| `CameraSpringArmPositionInstruction` | 设置相机位置 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, position | abilityId: `instruction.__80028/CameraSpringArmPositionInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CameraSpringArmRotationInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "cameraMovement",
+        "playerstart"
+      ],
+      "syntax": "| `CameraSpringArmRotationInstruction` | 设置相机朝向 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, direction | abilityId: `instruction.__80028/CameraSpringArmRotationInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CameraSwitchInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "cameraMovement",
+        "playerstart"
+      ],
+      "syntax": "| `CameraSwitchInstruction` | 相机切换 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, cameraType, useControllerRotation | abilityId: `instruction.__80028/CameraSwitchInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CampEditCommandEventDataInfo": {
+      "domains": [
+        "campEdit"
+      ],
+      "syntax": "| 创建/删除阵营 | `CampEditCommandEventDataInfo` |",
+      "encoding": "table",
+      "shared_notes": []
+    },
+    "CampItemEditCommandEventDataInfo": {
+      "domains": [
+        "campEdit"
+      ],
+      "syntax": "| 编辑阵营属性 | `CampItemEditCommandEventDataInfo` |",
+      "encoding": "table",
+      "shared_notes": []
+    },
+    "CancelAbilityInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "combat",
+        "skillMgr"
+      ],
+      "syntax": "| `CancelAbilityInstruction` | 停止技能 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: target, ability | abilityId: `instruction.__80001/__80002/CancelAbilityInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ChangeRole": {
+      "domains": [
+        "blockly-dsl",
+        "character"
+      ],
+      "syntax": "| `ChangeRole` | 切换角色（返回:Entity 切换后的角色实体） | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, extendsFaction, roleId, force | abilityId: `instruction.__80079/__80063/ChangeRole` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ChangeStateInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove",
+        "character"
+      ],
+      "syntax": "| `ChangeStateInstruction` | 飞行 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, state | abilityId: `instruction.__80079/__80280/ChangeStateInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CharPatrolInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove",
+        "character"
+      ],
+      "syntax": "| `CharPatrolInstruction` | 巡逻 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, radius, interval | abilityId: `instruction.__80079/__80280/CharPatrolInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CharTrackingInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove",
+        "character"
+      ],
+      "syntax": "| `CharTrackingInstruction` | 范围追踪 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, enemyRadius, invalidRadius, finishRadius, partrolEnabled, rangeRadius, delayTime | abilityId: `instruction.__80079/__80280/CharTrackingInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CharacterFollowInstruction_m2cm": {
+      "domains": [
+        "blockly-dsl",
+        "basemove",
+        "character"
+      ],
+      "syntax": "| `CharacterFollowInstruction_m2cm` | 跟随特定目标 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, target, radius | abilityId: `instruction.__80079/__80280/CharacterFollowInstruction_m2cm` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CharacterLookAtInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove",
+        "character"
+      ],
+      "syntax": "| `CharacterLookAtInstruction` | 朝向 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, target | abilityId: `instruction.__80079/__80280/CharacterLookAtInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CharacterMoveToInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove",
+        "character"
+      ],
+      "syntax": "| `CharacterMoveToInstruction` | 移动到坐标 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, target | abilityId: `instruction.__80079/__80280/CharacterMoveToInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CharacterPauseOrResumeInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove",
+        "character"
+      ],
+      "syntax": "| `CharacterPauseOrResumeInstruction` | 暂停/恢复行为 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, bPause | abilityId: `instruction.__80079/__80280/CharacterPauseOrResumeInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CloseInventoryInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `CloseInventoryInstruction` | 关闭背包 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity | abilityId: `instruction.__80090/__80143/CloseInventoryInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "CloseShopInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `CloseShopInstruction` | 关闭商店 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity | abilityId: `instruction.__80090/__80091/CloseShopInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ConversationConfigEditCommandEventDataInfo": {
+      "domains": [
+        "conversationEdit"
+      ],
+      "syntax": "{\n  \"__type__\": \"ConversationConfigEditCommandEventDataInfo\",\n  \"operationType\": 0,\n  \"groupName\": \"对话组名称\",\n  \"speakerName\": \"\",\n  \"content\": \"\",\n  \"conversationConfigIndex\": 0,\n  \"btnIndex\": 0,\n  \"btnId\": \"\"\n}",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "ConversationEditCommandEventDataInfo": {
+      "domains": [
+        "conversationEdit"
+      ],
+      "syntax": "{\n  \"__type__\": \"ConversationEditCommandEventDataInfo\",\n  \"operationType\": 0,\n  \"groupName\": \"对话组名称\",\n  \"newGroupName\": \"\"\n}",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "ConversationInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui",
+        "conversationEdit"
+      ],
+      "syntax": "| `ConversationInstruction` | 播放对话 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, output, btnPlayerEntity, btnAnotherEntity | abilityId: `instruction.__80074/__5100675/ConversationInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ConversationOptionEditCommandEventDataInfo": {
+      "domains": [
+        "conversationEdit"
+      ],
+      "syntax": "{\n  \"__type__\": \"ConversationOptionEditCommandEventDataInfo\",\n  \"operationType\": 0,\n  \"btnId\": \"itemXXXXXXXXXXXXXXXXXXXXX\",\n  \"name\": \"选项显示文本\"\n}",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "CreateCmdData": {
+      "domains": [
+        "templates"
+      ],
+      "syntax": "{\n  \"__type__\": \"CreateCmdData\",\n  \"aiId\": \"unique_ai_id\",\n  \"createObjName\": \"显示名称\",\n  \"resGuid\": \"GUID_FROM_DB\",\n  \"pos\": { \"__type__\": \"_Vector\", \"value\": \"0,0,0\" },\n  \"aiDesc\": \"语义描述（可选，关键对象推荐设置）\"\n}",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "DebugLog": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `DebugLog` | 调试打印 | owner: system | rawParams: output | abilityId: `instruction.__80074/__80075/DebugLog` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "DeleteCmdData": {
+      "domains": [
+        "templates"
+      ],
+      "syntax": "{ \"__type__\": \"DeleteCmdData\", \"gameObjectId\": \"scene_object_id_or_aiId\" }",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "DestroyEntity": {
+      "domains": [
+        "blockly-dsl",
+        "templates",
+        "basic"
+      ],
+      "syntax": "| `DestroyEntity` | 销毁物体（`entity` 须为真实实体） | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity | abilityId: `instruction.__80059/__80059/DestroyEntity` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "EnableJoyStickInputInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `EnableJoyStickInputInstruction` | 禁止移动 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, value | abilityId: `instruction.__80079/__80063/EnableJoyStickInputInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "EnvironmentInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basic"
+      ],
+      "syntax": "| `EnvironmentInstruction` | 设置环境效果 | owner: system | rawParams: uuid | abilityId: `instruction.__80024/__559/EnvironmentInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "FilterInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "cameraMovement"
+      ],
+      "syntax": "| `FilterInstruction` | 设置相机滤镜 | owner: system | rawParams: filterId, arg2 | abilityId: `instruction.__80024/__529/FilterInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "FixInventoryCapacityInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `FixInventoryCapacityInstruction` | 增减背包容量 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, count, mathType | abilityId: `instruction.__80090/__80143/FixInventoryCapacityInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "GiveAbilityInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "combat",
+        "skillMgr"
+      ],
+      "syntax": "| `GiveAbilityInstruction` | 添加技能 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: target, ability, activateAtOnce, uiSlotIndex | abilityId: `instruction.__80001/__80002/GiveAbilityInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ImpactInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "templates",
+        "model"
+      ],
+      "syntax": "| `ImpactInstruction` | 冲击力 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, direction, size, ignorMass | abilityId: `instruction.__80059/__80297/ImpactInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "InvincibleEntity": {
+      "domains": [
+        "blockly-dsl",
+        "combat",
+        "skillMgr"
+      ],
+      "syntax": "| `InvincibleEntity` | 无敌 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, seconds | abilityId: `instruction.__80001/__80012/InvincibleEntity` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "JumpInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove",
+        "character"
+      ],
+      "syntax": "| `JumpInstruction` | 跳跃 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity | abilityId: `instruction.__80079/__80280/JumpInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "KillEntity": {
+      "domains": [
+        "blockly-dsl",
+        "combat"
+      ],
+      "syntax": "| `KillEntity` | 死亡 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity | abilityId: `instruction.__80079/__80567/KillEntity` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "LeaveInteractionCurrentAnimation": {
+      "domains": [
+        "blockly-dsl",
+        "character"
+      ],
+      "syntax": "| `LeaveInteractionCurrentAnimation` | 停止互动动画 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity | abilityId: `instruction.__80079/__80080/LeaveInteractionCurrentAnimation` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "LookAtInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove",
+        "basic"
+      ],
+      "syntax": "| `LookAtInstruction` | 看向 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, target | abilityId: `instruction.__80059/__80297/LookAtInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ModifyAttributeInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "combat"
+      ],
+      "syntax": "| `ModifyAttributeInstruction` | 增减生命属性 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, modifyAttribute, value | abilityId: `instruction.__80079/__80139/ModifyAttributeInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ObjFollowInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `ObjFollowInstruction` | 跟随特定目标 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, target, speed, radius | abilityId: `instruction.__80059/__80297/ObjFollowInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ObjPatrolInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `ObjPatrolInstruction` | 巡逻 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, radius, speed, interval | abilityId: `instruction.__80059/__80297/ObjPatrolInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ObjTrackingInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `ObjTrackingInstruction` | 范围追踪 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, enemyRadius, invalidRadius, finishRadius, speed, partrolEnabled, rangeRadius, delayTime | abilityId: `instruction.__80059/__80297/ObjTrackingInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "OpenAvatorShopInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `OpenAvatorShopInstruction` | 打开形象商店 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity | abilityId: `instruction.__80090/__80162/OpenAvatorShopInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "OpenInventoryInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `OpenInventoryInstruction` | 打开背包 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity | abilityId: `instruction.__80090/__80143/OpenInventoryInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "OpenOCControlPanelInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basic"
+      ],
+      "syntax": "| `OpenOCControlPanelInstruction` | 打开OC控制面板 | owner: system | rawParams: entity | abilityId: `instruction.__80024/__80025/OpenOCControlPanelInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "OpenShopInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `OpenShopInstruction` | 打开商店 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, shopDataGuid | abilityId: `instruction.__80090/__80091/OpenShopInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "OverrideAttributeInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "combat"
+      ],
+      "syntax": "| `OverrideAttributeInstruction` | 设置生命属性 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, modifyAttribute, value | abilityId: `instruction.__80079/__80139/OverrideAttributeInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "OverrideStanceInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "character"
+      ],
+      "syntax": "| `OverrideStanceInstruction` | 切换姿态动画 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, Ground_Stand_Idle, Ground_Stand_Idle_Speed, Ground_Stand_Move, Ground_Stand_Move_Speed, Flying_Idle, Flying_Idle_Speed, Flying_HorizontalMove, Flying_HorizontalMove_Speed, Swimming_Free_Idle, Swimming_Free_Idle_Speed, Swimming_Free_Move, Swimming_Free_Move_Speed | abilityId: `instruction.__80079/__80080/OverrideStanceInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "PayInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `PayInstruction` | 派对币支付（返回:boolean 支付结果） | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, amount, onPaySuccess, onPayFailed | abilityId: `instruction.__80090/__80091/PayInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "PendantEffectEditCommandEventDataInfo": {
+      "domains": [
+        "pendantEffectEdit"
+      ],
+      "syntax": "{\n    \"__type__\": \"PendantEffectEditCommandEventDataInfo\",\n    \"operationType\": 0,\n    \"gameObjectId\": \"gameObjectId\",\n    \"guid\": \"1711234567890-abc123\",\n    \"path\": \"effectObj.effectInfos\"\n}",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "Play2DSoundInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "effect"
+      ],
+      "syntax": "| `Play2DSoundInstruction` | 全局播放音效 | owner: system 或具体实体（音效/BGM/特效类，见 Contract 系统 owner 集合） | rawParams: _soundId, _volume, _loopTime, _speedTime, _playInClient, _entity | abilityId: `instruction.__80055/__80106/Play2DSoundInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "PlayAnimationInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "character"
+      ],
+      "syntax": "| `PlayAnimationInstruction` | 播放动画 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, animationId, loopCount, _playAnimationType | abilityId: `instruction.__80079/__80080/PlayAnimationInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "PlayBGMInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "effect"
+      ],
+      "syntax": "| `PlayBGMInstruction` | 播放背景音乐 | owner: system 或具体实体（音效/BGM/特效类，见 Contract 系统 owner 集合） | rawParams: entity, _soundId, _volume | abilityId: `instruction.__80055/__80056/PlayBGMInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "PlayCameraMovementInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "cameraMovement"
+      ],
+      "syntax": "| `PlayCameraMovementInstruction` | 开启运镜 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: player, entity | abilityId: `instruction.__80028/PlayCameraMovementInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "PlayEffectInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "effect"
+      ],
+      "syntax": "| `PlayEffectInstruction` | 播放特效 | owner: system 或具体实体（音效/BGM/特效类，见 Contract 系统 owner 集合） | rawParams: _effectId, _duration, _worldPosition, _rotation, _scale, _transparency, _arg_color, _arg_color01 | abilityId: `instruction.__80059/__687/PlayEffectInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "PlayEffectOnGameObjectInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "effect",
+        "basic"
+      ],
+      "syntax": "| `PlayEffectOnGameObjectInstruction` | 对象上播放特效 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: _entity, slotType, _effectId, _duration, _worldPosition, _rotation, _scale, _transparency, _arg_color, _arg_color01 | abilityId: `instruction.__80059/__687/PlayEffectOnGameObjectInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": [],
+      "optionalTrailingArgs": [
+        "_transparency",
+        "_arg_color",
+        "_arg_color01"
+      ]
+    },
+    "PlayInteractionAnimationInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "character"
+      ],
+      "syntax": "| `PlayInteractionAnimationInstruction` | 播放互动动画 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, animationId, slotType, arg4, _relativeTransform, _slotRelativeTransform, _leaveInteractionType | abilityId: `instruction.__80079/__80080/PlayInteractionAnimationInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "PlaySpatialSoundInstruction_m2cm": {
+      "domains": [
+        "blockly-dsl",
+        "effect"
+      ],
+      "syntax": "| `PlaySpatialSoundInstruction_m2cm` | 场景中播放音效 | owner: system 或具体实体（音效/BGM/特效类，见 Contract 系统 owner 集合） | rawParams: _soundId, _position, _volume, _raidus, _falloffDistance, _loopTime, _speedTime, _playInClient, _entity | abilityId: `instruction.__80055/__80106/PlaySpatialSoundInstruction_m2cm` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "PropertyCommandEventDataInfo": {
+      "domains": [
+        "templates",
+        "basic",
+        "touchDetector",
+        "worldUI"
+      ],
+      "syntax": "{\n  \"__type__\": \"PropertyCommandEventDataInfo\",\n  \"gameObjectId\": \"target_id\",\n  \"path\": \"ability.propertyName\",\n  \"value\": 100\n}",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "AddWorldUISlotInfo": {
+      "domains": [
+        "worldUI"
+      ],
+      "syntax": "{\n  \"__type__\": \"AddWorldUISlotInfo\",\n  \"gameObjectId\": \"<真实对象ID>\"\n}",
+      "encoding": "json",
+      "shared_notes": [
+        "必须先用 AddAbilityCommandEventDataInfo 挂载 abilityName=\"worldUIV2\"。",
+        "本命令只创建空 slot，只传 gameObjectId；targetUICanvasGuid/spaceMode/transform 必须用后续 PropertyCommandEventDataInfo 设置。",
+        "执行后用 inspectSceneObjectAttachments 回读 worldUiCount 增加，再设置 worldUIV2.worldUIData.{index}.*。"
+      ]
+    },
+    "RemoveAbilityInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "combat",
+        "skillMgr"
+      ],
+      "syntax": "| `RemoveAbilityInstruction` | 移除技能 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: target, ability | abilityId: `instruction.__80001/__80002/RemoveAbilityInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "RemoveBuffInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "combat",
+        "buffEdit",
+        "skillMgr"
+      ],
+      "syntax": "| `RemoveBuffInstruction` | 移除BUFF | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, buffFromBuffList | abilityId: `instruction.__80001/__80012/RemoveBuffInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "RespawnEntity": {
+      "domains": [
+        "blockly-dsl",
+        "combat"
+      ],
+      "syntax": "| `RespawnEntity` | 复活 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, rebornPolicy | abilityId: `instruction.__80079/__80567/RespawnEntity` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ScreenUICanvasVisibleInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui",
+        "interactive"
+      ],
+      "syntax": "| `ScreenUICanvasVisibleInstruction` | 显隐屏幕UI画布 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, canvasGuid, show, bUseZOrder, zOrder | abilityId: `instruction.__80074/__81212/ScreenUICanvasVisibleInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ScreenUISetImageInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui"
+      ],
+      "syntax": "| `ScreenUISetImageInstruction` | 设置屏幕UI图片 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, canvasGuid, widgetGuid, imageTransitionType, imageId | abilityId: `instruction.__80074/__81212/ScreenUISetImageInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ScreenUISetTextInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui",
+        "interactive"
+      ],
+      "syntax": "| `ScreenUISetTextInstruction` | 设置屏幕UI文本 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, canvasGuid, widgetGuid, text | abilityId: `instruction.__80074/__81212/ScreenUISetTextInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ScreenUITransparencyAnimationInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui"
+      ],
+      "syntax": "| `ScreenUITransparencyAnimationInstruction` | 屏幕UI透明度动画 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, canvasGuid, widgetGuid, startTransparency, endTransparency, animationTime | abilityId: `instruction.__80074/__81212/ScreenUITransparencyAnimationInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ScreenUIWidgetVisibleInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui",
+        "interactive"
+      ],
+      "syntax": "| `ScreenUIWidgetVisibleInstruction` | 显隐屏幕UI控件 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, canvasGuid, widgetGuid, show, bAutoShowCanvasWhenWidgetShow, bUseZOrder, zOrder | abilityId: `instruction.__80074/__81212/ScreenUIWidgetVisibleInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "SetInventoryCapacityInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `SetInventoryCapacityInstruction` | 设置背包容量 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, count | abilityId: `instruction.__80090/__80143/SetInventoryCapacityInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "SetInventoryCurrencyInstruction_V2": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `SetInventoryCurrencyInstruction_V2` | 设置货币数量 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, currencyKey, count, showPopup | abilityId: `instruction.__80090/__80143/SetInventoryCurrencyInstruction_V2` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "SetModelMaterialImageInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "templates"
+      ],
+      "syntax": "| `SetModelMaterialImageInstruction` | 设置模型材质贴图 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, slotIndex, textureId | abilityId: `instruction.__80059/__1520110/SetModelMaterialImageInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ShakeInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basic"
+      ],
+      "syntax": "| `ShakeInstruction` | 屏幕震动 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, shakType | abilityId: `instruction.__80074/__80075/ShakeInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ShopEditCommandEventDataInfo": {
+      "domains": [
+        "shop"
+      ],
+      "syntax": "{\n  \"__type__\": \"ShopEditCommandEventDataInfo\",\n  \"operationType\": 0,\n  \"shopName\": \"武器店\",\n  \"shopGuid\": \"shop_时间戳_随机数\"\n}",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "ShopInstruction_BuyShopItem": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `ShopInstruction_BuyShopItem` | 购买商品 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, shopDataGuid, shopItemDataGuid, shopPrice, shopCount | abilityId: `instruction.__80090/__80091/ShopInstruction_BuyShopItem` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ShopInstruction_SellShopItem": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `ShopInstruction_SellShopItem` | 出售物品 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, shopDataGuid, shopItemDataGuid, shopPrice, shopCount | abilityId: `instruction.__80090/__80091/ShopInstruction_SellShopItem` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ShopItemEditCommandEventDataInfo": {
+      "domains": [
+        "shop"
+      ],
+      "syntax": "{\n  \"__type__\": \"ShopItemEditCommandEventDataInfo\",\n  \"operationType\": 0,\n  \"shopGuid\": \"shop_weapon_001\",\n  \"shopItemAssetId\": \"ASSET_ID_FROM_DB\",\n  \"shopItemGuid\": \"shopItem_时间戳_随机数\"\n}",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "ShopItemPriceEditCommandEventDataInfo": {
+      "domains": [
+        "shop"
+      ],
+      "syntax": "{\n  \"__type__\": \"ShopItemPriceEditCommandEventDataInfo\",\n  \"operationType\": 0,\n  \"shopGuid\": \"shop_weapon_001\",\n  \"shopItemGuid\": \"shopItem_xxx\",\n  \"currencyType\": 98989,\n  \"shopItemPrice\": 100,\n  \"currencyGuid\": \"user_custom_prop_gold_coin\",\n  \"purchaseLimit\": 99,\n  \"isInfinity\": false\n}",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "SkyEditCommandEventDataInfo": {
+      "domains": [
+        "skyEdit"
+      ],
+      "syntax": "{\n    \"__type__\": \"SkyEditCommandEventDataInfo\",\n    \"operationType\": 0,\n    \"ID\": 1\n}",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "SpawnAttachmentV3": {
+      "domains": [
+        "blockly-dsl",
+        "effect"
+      ],
+      "syntax": "| `SpawnAttachmentV3` | 生成挂件 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: ownerEntity, _assets, _slotType, _offset, _rotation, _scale | abilityId: `instruction.__80059/__1520110/SpawnAttachmentV3` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "SpawnEntityInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "templates"
+      ],
+      "syntax": "| `SpawnEntityInstruction` | 生成对象（返回:Entity 生成出的实体；`_assets` 是资源ID，返回值才是实体） | owner: system | rawParams: _assets, _position, _rotation, _scale | abilityId: `instruction.__80059/__80059/SpawnEntityInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "StopBGMInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "effect"
+      ],
+      "syntax": "| `StopBGMInstruction` | 停止背景音乐 | owner: system 或具体实体（音效/BGM/特效类，见 Contract 系统 owner 集合） | rawParams: entity | abilityId: `instruction.__80055/__80056/StopBGMInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "StopCameraMovementInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "cameraMovement"
+      ],
+      "syntax": "| `StopCameraMovementInstruction` | 关闭运镜 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: player, durationTime | abilityId: `instruction.__80028/StopCameraMovementInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "StopCurrentAnimation": {
+      "domains": [
+        "blockly-dsl",
+        "character"
+      ],
+      "syntax": "| `StopCurrentAnimation` | 停止当前动画 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity | abilityId: `instruction.__80079/__80080/StopCurrentAnimation` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "StopTransformInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `StopTransformInstruction` | 停止变换 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, transformType | abilityId: `instruction.__80059/__80297/StopTransformInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "TipsInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basic"
+      ],
+      "syntax": "| `TipsInstruction` | 飘字（owner=`system`；`_entity` 取值见 `(玩家)` 限定词与《实体参数接线规则》） | owner: system | rawParams: _entity, output | abilityId: `instruction.__80074/__80075/TipsInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "UIBindPlayerAvatarInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui"
+      ],
+      "syntax": "| `UIBindPlayerAvatarInstruction` | 绑定玩家形象到UI | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, avatarTargetEntity, canvasGuid, widgetGuid, operateUIType, worldUIEntity, bToAllClient | abilityId: `instruction.__80074/__80164/UIBindPlayerAvatarInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "UIWidgetCommandEventDataInfo": {
+      "domains": [
+        "ui",
+        "worldUI"
+      ],
+      "syntax": "[ui AddBind player userProperty] {\"__type__\":\"UIWidgetCommandEventDataInfo\",\"operationType\":3,\"subMode\":\"screenUI\",\"canvasGuid\":\"<C>\",\"widgetGuid\":\"<W>\",\"path\":\"data.textProperties.textProperties.text\",\"propertyType\":\"MultiLineText\",\"entityBindFrom\":\"player\",\"dataBindFrom\":\"userProperty\",\"PropertyKey\":\"<real inspectUserData key>\"}\n[ui AddBind scene userProperty] {\"__type__\":\"UIWidgetCommandEventDataInfo\",\"operationType\":3,\"subMode\":\"screenUI\",\"canvasGuid\":\"<C>\",\"widgetGuid\":\"<W>\",\"path\":\"data.barProperties.percent\",\"propertyType\":\"NumberInput\",\"entityBindFrom\":\"scene\",\"gameObjectId\":\"<sceneObjectId>\",\"dataBindFrom\":\"userProperty\",\"PropertyKey\":\"<real custom property key>\"}\n[ui AddBind component] {\"__type__\":\"UIWidgetCommandEventDataInfo\",\"operationType\":3,\"subMode\":\"screenUI\",\"canvasGuid\":\"<C>\",\"widgetGuid\":\"<W>\",\"path\":\"data.textProperties.textProperties.text\",\"propertyType\":\"MultiLineText\",\"entityBindFrom\":\"player\",\"dataBindFrom\":\"component\",\"abilityName\":\"health\",\"propertyName\":\"hp\"}\n[ui DeleteBind] {\"__type__\":\"UIWidgetCommandEventDataInfo\",\"operationType\":4,\"subMode\":\"screenUI\",\"canvasGuid\":\"<C>\",\"widgetGuid\":\"<W>\",\"path\":\"data.textProperties.textProperties.text\"}\n[common widget paths] text=data.textProperties.textProperties.text(MultiLineText); fontColor=data.textProperties.textProperties.fontColor(_LineColor); visibility=data.generalProperties.visibility(ToggleButton); opacity=data.generalProperties.renderOpacity(NumberInput); angle=data.generalProperties.renderTransformAngle(NumberInput); image=data.imageProperties.image.normalImage(AssetIconEdit); progress=data.barProperties.percent(NumberInput). Full path table: ui/whitelist.md binding path table.\n[worldUI] use subMode=\"worldUI\". Player/custom data still use dataBindFrom=\"userProperty\" + PropertyKey; component is only for built-in ability properties.",
+      "encoding": "mixed",
+      "shared_notes": [
+        "Widget AddBind uses operationType=3; Widget DeleteBind uses operationType=4. Both require subMode, canvasGuid, widgetGuid, and path.",
+        "Choose path/propertyType from ui/whitelist.md binding path table. If a path is not listed, inspectUiDetail/inspectPropertyValues must confirm it before use; do not invent paths.",
+        "Player data and custom data must use dataBindFrom:\"userProperty\" + PropertyKey. PropertyKey must be a real key from inspectUserData or object custom data.",
+        "dataBindFrom:\"component\" is only for built-in ability properties and requires abilityName/propertyName. entityBindFrom:\"scene\" also requires gameObjectId."
+      ]
+    },
+    "UpdateAiDesc": {
+      "domains": [
+        "templates"
+      ],
+      "syntax": "{\n  \"__type__\": \"UpdateAiDesc\",\n  \"gameObjectId\": \"target_id\",\n  \"aiDesc\": \"新的语义描述\"\n}",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "WaitForTime": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `WaitForTime` | 等待 | owner: system | rawParams: seconds | abilityId: `instruction.__80126/WaitForTime` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "WorldUICanvasVisibleInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui",
+        "worldUI"
+      ],
+      "syntax": "| `WorldUICanvasVisibleInstruction` | 显隐世界UI画布 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, canvasGuid, show, worldUIEntity, bToAllClient | abilityId: `instruction.__80074/__80750/WorldUICanvasVisibleInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "WorldUISetImageInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui",
+        "worldUI"
+      ],
+      "syntax": "| `WorldUISetImageInstruction` | 设置世界UI图片 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, canvasGuid, widgetGuid, imageTransitionType, imageId, worldUIEntity, bToAllClient | abilityId: `instruction.__80074/__80750/WorldUISetImageInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "WorldUISetTextInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui",
+        "worldUI"
+      ],
+      "syntax": "| `WorldUISetTextInstruction` | 设置世界UI文本 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, canvasGuid, widgetGuid, text, worldUIEntity, bToAllClient | abilityId: `instruction.__80074/__80750/WorldUISetTextInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "WorldUITransparencyAnimationInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui",
+        "worldUI"
+      ],
+      "syntax": "| `WorldUITransparencyAnimationInstruction` | 世界UI透明度动画 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, canvasGuid, widgetGuid, startTransparency, endTransparency, animationTime, worldUIEntity, bToAllClient | abilityId: `instruction.__80074/__80750/WorldUITransparencyAnimationInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "WorldUIWidgetVisibleInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui",
+        "worldUI"
+      ],
+      "syntax": "| `WorldUIWidgetVisibleInstruction` | 显隐世界UI控件 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, canvasGuid, widgetGuid, show, bAutoShowCanvasWhenWidgetShow, worldUIEntity, bToAllClient, bUseZOrder, zOrder | abilityId: `instruction.__80074/__80750/WorldUIWidgetVisibleInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "emptyInventoryInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `emptyInventoryInstruction` | 清空背包 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity | abilityId: `instruction.__80090/__80143/emptyInventoryInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "switchWeaponInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "combat",
+        "weapon"
+      ],
+      "syntax": "| `switchWeaponInstruction` | 切换武器 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: _entity, _item | abilityId: `instruction.__80001/__80131/switchWeaponInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "GameConfigCommandEventDataInfo": {
+      "domains": [
+        "gameConfig"
+      ],
+      "syntax": "{\n  \"__type__\": \"GameConfigCommandEventDataInfo\",\n  \"op\": \"upsert\",\n  \"name\": \"怪物属性\",\n  \"desc\": \"怪物基础战斗数值\",\n  \"cols\": [[\"名字\", \"String\"], [\"hp\", \"Number\"], [\"atk\", \"Number\"]],\n  \"rows\": [[\"slime\", 80, 8], [\"boss\", 1200, 60]]\n}",
+      "encoding": "json",
+      "shared_notes": []
+    },
+    "CameraGetForwardInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "cameraMovement",
+        "playerstart"
+      ],
+      "syntax": "| `CameraGetForwardInstruction` | 获取玩家相机方向（返回:vector 方向） | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity | abilityId: `instruction.__80028/CameraGetForwardInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "GetDateFromNumberInstruction": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `GetDateFromNumberInstruction` | 从数值获取时间戳（返回:date） | owner: system | rawParams: seconds | abilityId: `instruction.__5210330/GetDateFromNumberInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "GetCurrentDateInstruction": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `GetCurrentDateInstruction` | 获取当前时间（返回:date） | owner: system | rawParams: - | abilityId: `instruction.__5210330/GetCurrentDateInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "GetEntityByUserId": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `GetEntityByUserId` | 通过UserId获取实体（返回:Entity） | owner: system | rawParams: string | abilityId: `instruction.__80119/__80120/GetEntityByUserId` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "GetPlayers": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `GetPlayers` | 获取玩家列表（返回:Entity[] 玩家实体数组；**是数组**，需单个玩家处须先遍历，见《实体参数接线规则》） | owner: system | rawParams: - | abilityId: `instruction.__80119/__80120/GetPlayers` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "GetIsPlayer": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `GetIsPlayer` | 判断对象是否为玩家（返回:boolean） | owner: system | rawParams: entity | abilityId: `instruction.__80119/__80120/GetIsPlayer` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_playerStart_getUserId": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `AF_playerStart_getUserId` | 获取玩家Id | owner: 玩家实体（event.arg 的 player/triggerPlayer） | rawParams: - | abilityId: `instruction.__80119/__80120/AF_playerStart_getUserId` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_BasicAbility_broadcastCustomEvent": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `AF_BasicAbility_broadcastCustomEvent` | 发送广播事件（`owner`=**发起广播对象**；第1个参数=已注册 `eventId`；其后参数个数=模板 `paramList` 长度，0 则不得多传；见「自定义事件运行时参数」） | owner: 发起广播的实体（broadcastCustomEvent 的 owner） | rawParams: arg1 | abilityId: `instruction.__80119/__80133/AF_BasicAbility_broadcastCustomEvent` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "DistanceBetweenEntitiesInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "templates"
+      ],
+      "syntax": "| `DistanceBetweenEntitiesInstruction` | 物体间距离（返回:number 距离） | owner: system | rawParams: fromTarget, toTarget | abilityId: `instruction.__80059/__80059/DistanceBetweenEntitiesInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "GetEntityChildrenInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "templates"
+      ],
+      "syntax": "| `GetEntityChildrenInstruction` | 获取子物体列表（返回:Entity[]；过滤挂件/外观/空tag/UGCHOTWEAPON） | owner: system | rawParams: targetEntity | abilityId: `instruction.__80059/__80059/GetEntityChildrenInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "PositionAlongEntityDirectionInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "templates"
+      ],
+      "syntax": "| `PositionAlongEntityDirectionInstruction` | 沿实体方向取坐标（返回:vector 坐标） | owner: system | rawParams: target, relativeDirection, distance | abilityId: `instruction.__80059/__80059/PositionAlongEntityDirectionInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "DestroyPendantEntity": {
+      "domains": [
+        "blockly-dsl",
+        "effect"
+      ],
+      "syntax": "| `DestroyPendantEntity` | 销毁外观挂件（须 PendantComponent；index 为槽位内 **1 基**编号） | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, slotType, index | abilityId: `instruction.__80059/__1520110/DestroyPendantEntity` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_effectObj_getAllPendantsEntityCountHelper": {
+      "domains": [
+        "blockly-dsl",
+        "effect"
+      ],
+      "syntax": "| `AF_effectObj_getAllPendantsEntityCountHelper` | 获取所有挂件实体数量 | owner: 能力挂载实体 | rawParams: - | abilityId: `instruction.__80059/__1520110/AF_effectObj_getAllPendantsEntityCountHelper` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_effectObj_getAllPendantsEntityHelper": {
+      "domains": [
+        "blockly-dsl",
+        "effect"
+      ],
+      "syntax": "| `AF_effectObj_getAllPendantsEntityHelper` | 获取所有挂件实体 | owner: 能力挂载实体 | rawParams: - | abilityId: `instruction.__80059/__1520110/AF_effectObj_getAllPendantsEntityHelper` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_effectObj_getPendantsCountHelper": {
+      "domains": [
+        "blockly-dsl",
+        "effect"
+      ],
+      "syntax": "| `AF_effectObj_getPendantsCountHelper` | 获取插槽上的挂件数量 | owner: 能力挂载实体 | rawParams: string | abilityId: `instruction.__80059/__1520110/AF_effectObj_getPendantsCountHelper` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_effectObj_getPendantsEntityHelper": {
+      "domains": [
+        "blockly-dsl",
+        "effect"
+      ],
+      "syntax": "| `AF_effectObj_getPendantsEntityHelper` | 获取插槽上的挂件实体 | owner: 能力挂载实体 | rawParams: string | abilityId: `instruction.__80059/__1520110/AF_effectObj_getPendantsEntityHelper` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "GetMeleeWeaponEntityFromSpecEntity": {
+      "domains": [
+        "blockly-dsl",
+        "combat"
+      ],
+      "syntax": "| `GetMeleeWeaponEntityFromSpecEntity` | 获取目标装备的近战武器（返回:Entity 近战武器实体） | owner: system | rawParams: _entity | abilityId: `instruction.__80059/__80059/GetMeleeWeaponEntityFromSpecEntity` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "GetHotWeaponEntityFromSpecEntity": {
+      "domains": [
+        "blockly-dsl",
+        "combat"
+      ],
+      "syntax": "| `GetHotWeaponEntityFromSpecEntity` | 获取目标装备的热武器（返回:Entity 热武器实体） | owner: system | rawParams: _entity | abilityId: `instruction.__80059/__80059/GetHotWeaponEntityFromSpecEntity` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_health_addHp": {
+      "domains": [
+        "blockly-dsl",
+        "combat"
+      ],
+      "syntax": "| `AF_health_addHp` | 回血 | owner: 挂载 health 的实体 | rawParams: number | abilityId: `instruction.__80079/__80567/AF_health_addHp` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_health_removeHp": {
+      "domains": [
+        "blockly-dsl",
+        "combat"
+      ],
+      "syntax": "| `AF_health_removeHp` | 扣血 | owner: 挂载 health 的实体 | rawParams: number | abilityId: `instruction.__80079/__80567/AF_health_removeHp` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "PositionAlongCameraDirectionInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "cameraMovement"
+      ],
+      "syntax": "| `PositionAlongCameraDirectionInstruction` | 沿相机方向取坐标（返回:vector 坐标） | owner: system | rawParams: relativeDirection, distance | abilityId: `instruction.__80028/PositionAlongCameraDirectionInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ContinuousMoveInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `ContinuousMoveInstruction` | 持续移动(改变移动速度) | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, direction, isLocal, speed | abilityId: `instruction.__80059/__80297/ContinuousMoveInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ContinuousRotateInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `ContinuousRotateInstruction` | 持续旋转(改变旋转速度) | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, direction, isLocal, speed, Duration | abilityId: `instruction.__80059/__80297/ContinuousRotateInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ContinuousScaleInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `ContinuousScaleInstruction` | 持续缩放(改变缩放速度) | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, direction, isLocal, speed | abilityId: `instruction.__80059/__80297/ContinuousScaleInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "MoveInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `MoveInstruction` | 移动(指定时长) | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, target, duration, isLocal | abilityId: `instruction.__80059/__80297/MoveInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "RotateInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `RotateInstruction` | 变换旋转时间 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, target, duration, isLocal | abilityId: `instruction.__80059/__80297/RotateInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ScaleInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `ScaleInstruction` | 变换缩放时间 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, targetScale, duration, isLocal | abilityId: `instruction.__80059/__80297/ScaleInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "LockMoveAxisInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `LockMoveAxisInstruction` | 锁定移动轴 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, lockX, lockY, lockZ | abilityId: `instruction.__80059/__80297/LockMoveAxisInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "LockRotateAxisInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `LockRotateAxisInstruction` | 锁定旋转轴 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, lockX, lockY, lockZ | abilityId: `instruction.__80059/__80297/LockRotateAxisInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "LockScaleAxisInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "basemove"
+      ],
+      "syntax": "| `LockScaleAxisInstruction` | 锁定缩放轴 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, lockX, lockY, lockZ | abilityId: `instruction.__80059/__80297/LockScaleAxisInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "useInventoryItemInstrcution": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `useInventoryItemInstrcution` | 使用背包道具(旧版) | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: entity, howToChooseProp, itemId, propInScene | abilityId: `instruction.__80090/__80143/useInventoryItemInstrcution` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_InventoryAbility_addItemByPresetAssetId": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `AF_InventoryAbility_addItemByPresetAssetId` | 添加预设物品 | owner: 玩家实体（InventoryAbility 挂载对象） | rawParams: string, number, boolean | abilityId: `instruction.__80090/__80143/AF_InventoryAbility_addItemByPresetAssetId` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_InventoryAbility_removeItemByPresetAssetIdOnly": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `AF_InventoryAbility_removeItemByPresetAssetIdOnly` | 移除预设物品 | owner: 玩家实体（InventoryAbility 挂载对象） | rawParams: boolean, string, Entity, number, boolean | abilityId: `instruction.__80090/__80143/AF_InventoryAbility_removeItemByPresetAssetIdOnly` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_InventoryAbility_hasPresetAssetItemByAssetId": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `AF_InventoryAbility_hasPresetAssetItemByAssetId` | 是否拥有预设物品 | owner: 玩家实体（InventoryAbility 挂载对象） | rawParams: boolean, string, Entity | abilityId: `instruction.__80090/__80143/AF_InventoryAbility_hasPresetAssetItemByAssetId` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_InventoryAbility_getPresetAssetItemCountByAssetId": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `AF_InventoryAbility_getPresetAssetItemCountByAssetId` | 获取预设物品的数量 | owner: 玩家实体（InventoryAbility 挂载对象） | rawParams: boolean, string, Entity | abilityId: `instruction.__80090/__80143/AF_InventoryAbility_getPresetAssetItemCountByAssetId` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "AF_InventoryAbility_checkInventoryEmptySlot": {
+      "domains": [
+        "blockly-dsl",
+        "shop"
+      ],
+      "syntax": "| `AF_InventoryAbility_checkInventoryEmptySlot` | 获取背包空格子数量 | owner: 玩家实体（InventoryAbility 挂载对象） | rawParams: - | abilityId: `instruction.__80090/__80143/AF_InventoryAbility_checkInventoryEmptySlot` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "UICanvasCommandEventDataInfo": {
+      "domains": [
+        "ui"
+      ],
+      "encoding": "mixed",
+      "shared_notes": [
+        "Canvas/layer AddBind uses operationType=3; Canvas/layer DeleteBind uses operationType=4.",
+        "Canvas binding only supports data.generalProperties.<field>; use UIWidgetCommandEventDataInfo for widget text/image/bar paths.",
+        "Choose Canvas path/propertyType from ui/whitelist.md binding path table; examples live in ui/examples.md."
+      ],
+      "syntax": "[ui Canvas AddBind] {\"__type__\":\"UICanvasCommandEventDataInfo\",\"operationType\":3,\"subMode\":\"screenUI\",\"canvasGuid\":\"<C>\",\"path\":\"data.generalProperties.renderOpacity\",\"propertyType\":\"NumberInput\",\"entityBindFrom\":\"player\",\"dataBindFrom\":\"userProperty\",\"PropertyKey\":\"<real inspectUserData key>\"}\n[ui Canvas DeleteBind] {\"__type__\":\"UICanvasCommandEventDataInfo\",\"operationType\":4,\"subMode\":\"screenUI\",\"canvasGuid\":\"<C>\",\"path\":\"data.generalProperties.renderOpacity\"}\n[canvas paths] defaultShow=data.generalProperties.defaultShow(ToggleButton); zOrder=data.generalProperties.zOrder(NumberInput); renderOpacity=data.generalProperties.renderOpacity(NumberInput). Canvas binding only supports data.generalProperties.<field>."
+    },
+    "AF_playerStart_getUserConsumptionAmount": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `AF_playerStart_getUserConsumptionAmount` | 获取玩家该游戏消费（返回:number） | owner: 玩家实体（event.arg 的 player/triggerPlayer） | rawParams: - | abilityId: `instruction.__80119/__80120/AF_playerStart_getUserConsumptionAmount` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ScreenUIGetTextInstruction": {
+      "domains": [
+        "blockly-dsl",
+        "ui",
+        "interactive"
+      ],
+      "syntax": "| `ScreenUIGetTextInstruction` | 获取屏幕UI文本（返回:string） | owner: 玩家实体 | rawParams: entity:Entity(玩家),canvasGuid:string,widgetGuid:string | abilityId: `instruction.__80074/__81212/ScreenUIGetTextInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "WorldUIGetTextInstructionWithoutPlayer": {
+      "domains": [
+        "blockly-dsl",
+        "ui",
+        "worldUI"
+      ],
+      "syntax": "| `WorldUIGetTextInstructionWithoutPlayer` | 获取世界UI文本（返回:string；WithoutPlayer 变体） | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: worldUIEntity:Entity,canvasGuid:string,widgetGuid:string,bToAllClient:boolean,targetEntity:Entity(玩家) | abilityId: `instruction.__80074/__80750/WorldUIGetTextInstructionWithoutPlayer` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "JumpPlayerToSubLevelInstruction": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `JumpPlayerToSubLevelInstruction` | 传送指定玩家到关卡 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: levelFileName, targetEntity, bRoomPublic | abilityId: `instruction.__80024/__1482/JumpPlayerToSubLevelInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "JumpAllPlayersToSubLevelInstruction": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `JumpAllPlayersToSubLevelInstruction` | 传送所有玩家到关卡 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: levelFileName, bRoomPublic | abilityId: `instruction.__80024/__1482/JumpAllPlayersToSubLevelInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "GetCurrentLiteSceneLevelInstruction": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `GetCurrentLiteSceneLevelInstruction` | 获取当前关卡（返回:string levelFileName） | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: - | abilityId: `instruction.__80024/__1482/GetCurrentLiteSceneLevelInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    },
+    "ConditionCurrentLiteSceneLevelInstruction": {
+      "domains": [
+        "blockly-dsl"
+      ],
+      "syntax": "| `ConditionCurrentLiteSceneLevelInstruction` | 当前关卡是否为 | owner: 宿主实体（见 blockly-dsl owner 规则） | rawParams: levelFileName, childInstruction | abilityId: `instruction.__80174/ConditionCurrentLiteSceneLevelInstruction` |\n> Blockly ABI：`rawParams` 是原始指令参数表，不等于 DSL `args`；按 blockly-dsl owner 规则映射。禁止 InstructionInfo + PG 包装器。",
+      "encoding": "runtime-abi",
+      "shared_notes": []
+    }
+  },
+  "constraints": {
+    "basemove": {
+      "heading": "V2 运行约束",
+      "constraints": "## V2 运行约束\n\n- Use BaseMoveAbility for moving platforms, elevators, conveyor belts, windmills, rotating hazards, pendulums, and scaling/breathing platforms.\n- Use nested paths such as BaseMoveAbility.baseMoveConfig_Move.linearSpeed; flat paths such as BaseMoveAbility.linearSpeed are compatibility aliases only.\n- Speed values are vectors; do not send scalar values such as 50.\n- Use motionCoordinate friendly values worldAxis/世界坐标系 -> 0 and localAxis/本地坐标系 -> 1.\n- For one-way continuous rotation, set rotationRepeat=false."
+    },
+    "basic": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. **内置能力**: BasicAbility 随所有实体自动挂载(TAG_All)，通常不需要手动添加\n2. **⚠️ 阵营 faction=\"1\" 是特殊值**: DamageComponent 源码检查 `factionName==='1'` 时直接跳过伤害计算。faction=\"1\"(无/中立) 的对象**不能造成也不能接受伤害**。玩家如需参与战斗，应设为 faction=\"2\"(友善) 而非 \"1\"(无)\n3. **阵营默认值**: 普通对象默认 factionID=\"1\"(无), Character 默认 factionID=\"3\"(敌对)\n4. **阵营值来源**: `faction` 值从工具返回的 `campDataList` 获取阵营 ID 字符串，不要硬编码\n5. **visible 枚举**: PropertyStatus 枚举 — 0=FromParent(跟随父节点), 1=On(显示), 2=Off(隐藏含碰撞)\n6. **entityName 非空**: setter 检查 `StringUtil.isEmpty(v)` → 空字符串会被静默丢弃\n7. **description 仅编辑态**: `showInCommand=false`，运行时不可通过 `property.set` 修改\n8. **visible 仅运行态**: `showInProperty=false` / `showInCommand=true`，运行态用 `blockly-dsl` 的 `property.set` 写 `BasicAbility.visible`\n9. **uiHeight 不开放修改**: `showInProperty=false` / `showInCommand=false`，不要在示例或生成结果中配置\n10. **onGameObjectSelected 限制**: 不支持 Floor/PlayerStart/Scene/Effect 类型实体"
+    },
+    "basicOperationEdit": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. 复制前由工具执行唯一目标解析；不存在或重名时停止，不猜 `gameObjectId`。\n2. `scene_copy_object` 只负责复制。需要指定新位置时，在复制 readback 得到新对象 ID 后调用 `scene_set_position`。\n3. 旋转、缩放和颜色分别使用 `scene_set_rotation`、`scene_set_scale`、`scene_set_color`，不要退回通用属性路径。\n4. 写入后必须检查工具返回的 created IDs，并对复制体执行 inspect/readback。"
+    },
+    "bgmEdit": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. **统一命令类型**: 仅使用 `bgm_configure`\n2. **模式字段**: `mode=\"music\"` 切换 BGM，`mode=\"music_volume\"` 调 BGM 音量，`mode=\"sound_volume\"` 调音效音量\n3. **切换 BGM 时成对传值**: `musicGuid` 与 `musicName` 应同时提供，避免界面显示名与实际播放资源不一致\n4. **真实资源名优先**: `musicName` 必须使用已确认 `musicGuid` 对应的资源真实名称（来自资源列表、资源检索结果或上下文），禁止按用户需求自行概括、改写或生成描述性名称\n5. **音量只传 `settings.volume`**: 音量模式不传 `musicGuid`、`musicName`\n6. **音量范围**: `settings.volume` 使用 Contract 约束的 [0, 1]\n7. **停止背景音乐**: 若要停掉 BGM，可将 `musicGuid` 传空字符串，并同步传空或明确的 `musicName`\n8. **编辑态修改 运行态禁止使用"
+    },
+    "buffEdit": {
+      "heading": "关键约束 ⭐（编辑态基础数据）",
+      "constraints": "### 关键约束 ⭐（编辑态基础数据）\n\n1. **`buff_manage` 绝不能含三钩子键**：`onBuffBegin` / `OnBuffPeriod` / `onBuffEnd` **禁止**出现在该对象上，含空数组 `[]`、字符串化、嵌套、任意大小写变体\n2. **基础数据只走Contract 声明字段**（见下方Contract 声明）：生命周期逻辑不在此对象里配置，改用 `blockly-dsl`\n3. **生命周期 / Apply / Remove 仅走积木**：`onBuffBegin` / `OnBuffPeriod` / `onBuffEnd` 与场景内 ApplyBuff / RemoveBuff **一律** `sideapi_blockly_compile`（Buff 钩子 `target.type=buffEdit` + `buffUID`；touchDetector 等 `target.type=scene`）。**禁止**在 skill/case 中引导 `sideapi_blockly_compile` 挂链或 execute 直写 InstructionList\n4. **`OnBuffPeriod` 大写 O**：作为生命周期路径名固定拼写，不可改；使用周期时 `period > 0`"
+    },
+    "cameraMovement": {
+      "heading": "关键约束 ⭐",
+      "constraints": "## 关键约束 ⭐\n\n1. **先挂载再设属性**: 设置 `TrackAbilty.*` 属性前，必须先 `scene_set_ability` 挂载 `TrackAbilty`\n2. **运行态不可改属性**: `TrackAbilty.*` 属性均为编辑态配置，不支持运行态 `property.set`。\n3. **编辑态可配置**: `trackPointInfoList`、`onPlayCameraMovementComplete`、`onPlayCameraMovementInterrupt` 可在编辑态通过 `scene_configure_ability` 写入\n4. **积木绑在触发源对象事件上**: `PlayCameraMovementInstruction` / `StopCameraMovementInstruction` 是运行态指令，用积木绑在触发源对象（PlayerStart、touchDetector、interactive 等）的事件上；开始指令的 `entity` 参数指向挂 `TrackAbilty` 的运镜对象\n5. **transform 格式**: 每个轨迹点的 `transform` 使用 `_Transform` 类型，value 格式为 `\"pos|rot|scale\"`（管道分隔三段，与 `templates` skill 的 `_Transform` 约定一致）\n6. **轨迹点顺序**: `trackPointInfoList` 按索引顺序依次经过，`{index}` 从 0 开始\n7. **durationTime 单位为秒**: 取值范围 `[0, 99999999]`，为相机从上一点移动到当前点的时长\n8. **await 单位为秒**: 取值范围 `[0, 99999999]`，为相机到达当前点后停留等待的时长"
+    },
+    "campEdit": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. **查询工具**: 操作前调用 `getAllCampEditData` 获取现有阵营列表（ID、名称、颜色）\n2. **名称唯一**: 创建时 `campDataName` 不能与已有阵营名称重复\n3. **ID 分配**: `campDataId` 为字符串类型，始终从当前可用的最小正整数分配（若已有 ID=2 但无 ID=1，则新阵营分配 ID=1）"
+    },
+    "character": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. `BT_MonsterTracking` 必须配合 `BasicAbility.faction` 设为敌对阵营；无阵营或双方阵营为无阵营 `1` 时，AI 无法识别攻击目标。\n2. 行为树距离参数单位是厘米，例如 `_enemyRadius=1000` 表示 10 米侦测。\n3. 切换 `CharacterAbility._information.aiName` 会重建动态参数；编辑态配置时必须先写 `aiName`，再写 `_dynamicProperties.*`。\n4. 自定义碰撞盒必须先写 `CharacterAbility.collisionModify=true`，再写 `collisionShape` 和对应尺寸字段。\n5. `CharacterAbility.gravityScale` 既不可编辑也不可指令修改；飞行/游泳速度字段可改，但进入飞行/游泳状态仍需用角色运行态指令或状态控制。\n6. NPC 待机随机语音用 `CharacterAbility._idleVoiceDataShow.*`；运动音效用 `CharacterAbility._soundDataShow.dataMap.*`，不要把 Idle 槽位写进运动音效 `dataMap`。\n7. 待机语音仅编辑态配置，至少需要 `enabled=true` 且存在一条有效 `voiceAssets.{index}.soundGuid` 或 `animationGuid`；本地玩家角色会被运行时排除。"
+    },
+    "combat": {
+      "heading": "关键约束 ⭐ (源自前端 HealthAttributeComponent.ts 验证)",
+      "constraints": "## 关键约束 ⭐ (源自前端 HealthAttributeComponent.ts 验证)\n\n1. **先挂载再设属性**: 修改 `health.*` 前必须 `AddAbilityCommandEventDataInfo` 挂载 health\n\n2. **⚠️⚠️ 初始化血量 — 唯一正确写法（EditTime PropertyCommandEventDataInfo × 2）**:\n\n   ```json\n   {\"commandType\":\"PropertyCommandEventDataInfo\",\"gameObjectId\":\"<id>\",\"propertyPath\":\"health.dynamicPropertyInfo.maxHp\",\"propertyValue\":500}\n   {\"commandType\":\"PropertyCommandEventDataInfo\",\"gameObjectId\":\"<id>\",\"propertyPath\":\"health.dynamicPropertyInfo.hp\",\"propertyValue\":500}\n   ```\n   - 顺序固定：先 `dynamicPropertyInfo.maxHp`，再 `dynamicPropertyInfo.hp`（值 ≤ maxHp，否则静默丢弃）\n   - 两条都不能省：只设 maxHp 不设 hp → 运行时 hp 仍是默认值 3\n\n3. **初始化 vs 运行时属性**:\n   - `dynamicPropertyInfo.hp`/`dynamicPropertyInfo.maxHp` → EditTime(编辑态)，showInProperty=true, showInCommand=false\n   - `hp`/`maxHP` → Runtime(运行时)，showInProperty=false, showInCommand=true\n   - 运行时 `hp` 被自动 clamp 到 ≤ `maxHp`；降低 `maxHP` 会自动 clamp `hp`\n\n4. **health 不支持 RPG 战斗属性或多资源系统**: `health.attack` / `health.defense` / `health.maxMP` 等均不在 health 能力内，`configureAbility` 和 `executeSteps` 均无法设置。`health.dynamicPropertyInfo.attack` 也无效——虽然 execute 可能返回 ok，但游戏运行时不读该路径，效果为零。⭐ **若需设置攻击力，正确路径是武器的 `damage` 属性**：远程枪械用 `HotWeaponItemAbility.damage`，近战武器用 `MeleeWeaponItemAbility.damage`，须走预设编辑流程（loadSkill(\"weapon\") 查约束7）"
+    },
+    "conversationEdit": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n- 对话组名在项目内唯一；无复制语义时禁止 `action=\"copy\"`。\n- `bind_button` 前必须已创建选项数据和对应按钮槽。\n- `btnId` 由规则生成并在后续调用中原样复用，显示文字放在 `settings.name`。\n- Blockly 的玩家和对话对象使用事件参数，禁止从场景猜玩家实体。\n- EditTime 数据归 `conversation_manage`；打开对话、选项点击后的任务/商店/传送归 Blockly。"
+    },
+    "customData": {
+      "heading": "关键约束 ⭐",
+      "constraints": "## 关键约束 ⭐\n\n1. **⚠️ 运行态前置门控（在积木里 `property.set` / `property.get` 读写对象自定义属性前，三步走不可跳过）**：\n   - **Step 1 — 查能力与属性**: 调用 `sideapi_inspect(operation=\"inspectSceneObjectDetail\", request_json={\"gameObjectIds\":[\"<gameObjectId>\"]})`，检查 `data.objects[].abilities[].abilityName` 列表中是否含 `\"CustomAbility\"`，以及 `CustomAbility` 的 `dynamicPropertys` 中是否已有目标属性名\n   - **Step 2 — 不存在则先 EditTime 创建（两步缺一不可）**：\n     - **Step 2a** — 若 `abilities[].abilityName` 中没有 `\"CustomAbility\"`：必须先输出 `scene_set_ability`（`abilityName:\"CustomAbility\"`）挂载能力载体\n     - **Step 2b** — 若目标属性不在 `dynamicPropertys` 中：输出 `object_data_manage(action=\"create\")`添加具体属性字段\n     - ❌ **禁止跳过 Step 2a 直接输出 Step 2b**——缺少载体时属性创建和后续读写全部失效\n     - ❌ **禁止假设 `CustomAbility` 已存在**——`abilities[].abilityName` 里没有就是不存在\n   - **Step 3 — 运行态读写后置**: 积木 `property.set` / `property.get`（`target`=场景对象）只能在 EditTime 创建步骤全部完成之后使用\n   - **⚠️ 在 Buff 生命周期（`onBuffBegin` / `OnBuffPeriod` / `onBuffEnd`）中使用时**：先独立调用 `scene_set_ability` 和 `object_data_manage` 完成对象数据初始化并 readback，再调用 `sideapi_blockly_compile` 绑定生命周期钩子；两阶段不得颠倒。\n2. **目标不可混用**: 对象自定义属性运行态在积木用 `property.set`/`property.get`（`target`=场景对象）；运行时玩家配置字段不属于此范围\n   - ❌ 玩家数据不属于本 skill；应使用 `user_data_manage`\n   - ❌ 禁止在本 skill 下输出 `AIGameCustomscene_configure_ability`；该类型属于 `gameData`（全游戏共享字段，2026-08-03 接入）\n   - ❌ 禁止用 `customPropertyName` 表示玩家数据字段；玩家数据必须用 `uuid` / `displayName`\n   - ✅ 任务出现“玩家变量 / 玩家属性 / 认领状态 / has_xxx / UserPropertyInstruction / UserCustomPropertyTypeGet*”时，停止使用本 skill，改加载 `userData`\n   - ✅ 任务出现“游戏数据 / 全局变量 / 全服共享 / 全局开关 / 全服公告”（全场一份的值）时，停止使用本 skill，改加载 `gameData`\n3. **等级/经验排除**: 用 `LevelAbility` 内置能力\n4. **输出顺序（严格）**: ① `scene_set_ability`（CustomAbility）→ ② `object_data_manage(action=\"create\")`→ ③ 运行态积木 `property.set`/`property.get`"
+    },
+    "custommodel": {
+      "heading": "关键约束 ⭐ (源自前端 CustomModelComponent.ts 验证)",
+      "constraints": "## 关键约束 ⭐ (源自前端 CustomModelComponent.ts 验证)\n\n1. **内置能力**: customModelAbility 随 TAG_CustomModel 实体自动挂载，**不能**通过 `scene_set_ability` 添加\n2. **全部 EditTime only**: 所有属性 showInProperty=true, showInCommand=false → 只能用 scene_configure_ability\n3. **场景上限**: 最多 75 个自定义模型变体（`sceneTotalCustomModelCount` 只读统计）\n4. **默认值**: bevelCubeSize=10.0, bevelRadius=1.0, bevelSegments=3（initializers）\n5. **配合材质**: 常配合 `model.Color` 和 `model.modelOpacity` 设置外观\n6. **浮点容差**: setter 内部有 `Math.abs(value-oldValue)<0.0001` 检查，微小变化会被忽略\n7. **LENGTH_SCALE_FACTOR**: 前端 getter/setter 有缩放因子转换，但对 AI 透明（传入 UI 值即可）"
+    },
+    "damage": {
+      "heading": "关键约束 ⭐ (源自前端 DamageComponent.ts 验证)",
+      "constraints": "## 关键约束 ⭐ (源自前端 DamageComponent.ts 验证)\n\n1. **先挂载再设属性**: 修改 `DamageAbility.*` 前必须 `scene_set_ability` 挂载 DamageAbility\n\n2. **⚠️ 阵营是伤害前置条件**: 前端代码(L770-783)明确检查:\n   - 没有 FactionComponent → 直接 return（无法造成伤害）\n   - **factionName === '1' → 直接 return**（阵营\"1\"=无，完全禁用伤害系统！玩家不要设为\"1\"）\n   - 同阵营 → 直接 return（只对敌对阵营造成伤害）\n   - **结论**: 伤害源和目标都必须有 `BasicAbility.faction`，且不能是\"1\"，且必须是不同阵营\n\n3. **DamageType 枚举值**: `Instance`(=0,接触伤害) / `Duration`(=1,持续伤害)。**默认是 Duration(持续)**，不是 Instance\n   - `interval` 属性仅在 Duration 模式下可见(editorSetInternalVisible)\n\n4. **criticalChance 有 @displayPercent 装饰**: 显示为百分比，但存储的是原始值（如 criticalChance=20 表示 20% 暴击率）\n\n5. **负数伤害 = 治疗**: `damageMagnitude` 范围 [-99999999, 99999999]，负值为治疗效果"
+    },
+    "effect": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n| 场景 | 入口 | 约束 |\n|------|------|------|\n| 初始化特效对象 | EditTime | 先 `scene_set_ability` 挂载 `EffectAbility`，再写 `EffectAbility.effectAssetId` / `EffectAbility.playState` 等属性 |\n| 运行时开关特效对象 | `blockly-dsl` | 只建议用 `property.set` 修改 `EffectAbility.playState`，值为 `\"Play\"` 或 `\"Stop\"` |\n| 添加对象挂件特效 | EditTime | `scene_add_effect_slot(target, settings)`，能力、槽位和字段由服务一次完成 |\n| 运行时一次性特效 | `blockly-dsl` | 使用 `PlayEffectOnGameObjectInstruction`，不要把它当成 `EffectAbility` 持久属性 |"
+    },
+    "ik": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. 先用 `scene_set_ability` 挂载 `IK`，再写任何 `IK.*` 属性。\n2. `IK` 仅支持热武器对象（`TAG_HotWeapon`），普通模型、角色或机关不要挂载。\n3. 运行态是否可改只看 Ability 配置里的 `showInCommand`；编辑态是否可改看 `showInProperty` / `showInSetVisibleInProperty` / `canBeSetVisibleInProperty`。\n4. `IK.anchorType` 是枚举：`\"0\"` = 左手，`\"1\"` = 右手。\n5. `IK.anchorVisible` 主要用于调试锚点，正式运行通常设为 `false`。\n6. `IK.anchorModelPosition` 是核心锚点位置；编辑态优先通过 `IK.openIKAnchorEditEntry` 进入锚点编辑空间调整。\n7. `IK.anchorFollow` 控制锚点是否跟随武器握持点位置偏移。\n8. `IK.anchorModelRotation` / `IK.anchorModelScale` 不是当前 Ability Contract 声明属性，AI 不要生成这些路径。"
+    },
+    "interactive": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. **先挂载再设属性**: 修改 `Interactive.*` 前必须 `scene_set_ability` 挂载 Interactive\n2. **阵营检测必须查询**: 设置 `factionDetectTypes` 前**必须调用`【阵营系统查询工具】`**获取阵营列表，对 `campName_lang` 语义匹配后填入序号。禁止凭经验猜测\n3. **factionDetectTypes 单选**: 仅接受单个序号字符串。`\"-1\"`=所有阵营(不含无阵营)，`\"-2\"`=所有阵营(含无阵营)\n4. **interactTimes 与 enableWithTimes 配合**: `enableWithTimes=true` 时 `interactTimes` 才生效；次数耗尽后自动隐藏按钮\n5. **interactTimes 范围**: @range([0, 9999999])，@precision(0) 整数\n6. **interactName 默认空**: 空字符串时客户端显示内置默认文案\n7. **运行态事件只绑定点击入口**: 使用 `Interactive.showButtonClickDelegate`；`buttonClickDelegate`、`onInteractStart`、`buttonCancelDelegate`、`showButtonCancelDelegate` 都不要作为 AI 事件路径"
+    },
+    "level": {
+      "heading": "关键约束 ⭐ (源自前端 LevelComponent.ts + LevelExpConfig.ts 验证)",
+      "constraints": "## 关键约束 ⭐ (源自前端 LevelComponent.ts + LevelExpConfig.ts 验证)\n\n1. **先挂载再设属性**: 修改 `LevelAbility.*` 前必须 `scene_set_ability` 挂载 LevelAbility\n\n2. **⚠️ initLevel setter 约束**:\n   - 设置 initLevel 同时自动把 `_level` 也设为同值\n   - 超过 maxLevel(100) 时被 clamp 到 100\n   - 范围 `@range([1, 100])`, `@precision(0)` → 整数\n\n3. **⚠️ level setter 约束** (运行时):\n   - `level < initLevel` → **静默丢弃**（不能低于初始等级）\n   - 等级改变时自动将 exp 置 0 并触发 onLevelChange 事件\n\n4. **maxLevel = 100**: 内置 100 级经验表，超过 100 不会升级\n5. **maxExp 只读**: 运行时属性，表示当前等级升级所需经验，不可直接修改\n6. **经验表偏小**: 1级=5exp, 10级=275exp, 30级=2325exp, 50级=6375exp, 100级=max"
+    },
+    "prefabNodeEdit": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. **新建预设资源唯一走场景实体转预设**：`search_asset(kind=model)` 选择真实外观资源 → `CreateCmdData(abilityTag=目标资源tag)` 创建主临时实体 → AddAbility 选型 → Property 修改属性 → Blockly/Instruction 添加逻辑 → `SaveEntityAsPresetDataInfo` → inspect 验证 `newPresetAssetId` → `DeleteCmdData`。\n2. **`SaveEntityAsPresetDataInfo` 是新建当次的业务配置截止线**：**同一次** `CreateCmdData → SaveEntityAsPresetDataInfo` 流程内，保存前必须完成要烤入资源的 Ability、属性、Instruction/Blockly、Effect/Buff、交互和使用脚本；该次 Save 后只允许验证、清理临时实体、按需 `CreateCmdData(resGuid=newPresetAssetId)` 放置正式实例或 `ApplyPresetToSceneDataInfo` 同步既有实例。**不**禁止资源出厂后对已有 `presetAssetId` 走 Open→Commit 增量修改。\n3. **禁止同一次新建流程内 Save 后补写业务逻辑**：**同一次新建** Save 后不得再 Open/Commit 预设补写属性、脚本或事件（禁止先 Save 空壳再 Open 补漏）；若脚本必须引用保存后才产生的自身 `newPresetAssetId`，当前统一创建链路无法在保存前闭合，应报告能力缺口或改用不依赖自身资源 ID 的设计。\n4. **`SaveLocalizedPrefabCopyDataInfo` 不是从零新建入口**：它只用于用户明确要求“另存/复制已有预设副本/基于某个已有预设做副本”时；新建武器/道具/机关/怪物资源不得用它代替 `CreateCmdData + SaveEntityAsPresetDataInfo`，也不得作为 AddAbility 失败后的备选路径。\n5. **资源 ID 只认 `newPresetAssetId`**：禁止把模型 guid、临时 `gameObjectId`、Create 源资源 ID、模板 ID 当作背包、spawner、SpawnEntity、商店或掉落系统使用的 presetAssetId。\n6. **外观资源必须真实**：`search_asset` 只提供真实资源 ID，禁止编造。机关/武器/道具在 `CreateCmdData` 写 `abilityTag`，Save 用 `expectedAbilityTag` 校验。**角色**须 `kind=character`（`type_tag#角色`），Create/Save **均不覆写** tag。\n7. **Create/Save 阶段资源 tag（机关/武器/道具）**：`CreateCmdData.abilityTag`：远程武器 `512`、近战 `16`、道具 `1024`、机关 `32`。`SaveEntityAsPresetDataInfo.expectedAbilityTag` 必须传同值。**角色资源例外**：Create **不传** abilityTag，Save **不传** expectedAbilityTag；inspect 须验证 `abilityTag=8`。"
+    },
+    "model": {
+      "heading": "关键约束 ⭐ (源自前端 Model.ts + ModelCollisionComponent.ts 验证)",
+      "constraints": "## 关键约束 ⭐ (源自前端 Model.ts + ModelCollisionComponent.ts 验证)\n\n1. **先挂载再设属性**: 修改 `model.*` 前必须 `scene_set_ability` 挂载 model\n2. **物理前置**: 启用物理(`physicsEnabled`)前必须先开阻挡(`collisionEnabled=true`)，setter 会自动强制开启\n3. **材质 GUID 必须查询**: `model.materialInfo.{index}.slotMaterialID` 必须通过 `ResourceSelectTools.getMaterialAssets()` 获取，禁止猜测\n4. **Color vs materialInfo**: `model.Color` 只改颜色叠加；`model.materialInfo` 替换或调整插槽材质（纹理+光照+金属度）\n5. **颜色优先专用工具**：改模型颜色调用 `scene_set_color(target, color)`，`color` 使用工具 Schema 接受的颜色字符串；不要写 `model.Color` 底层包装器。\n6. **model 不负责缩放**: 不存在 `model.Scale` / `model.scale` 路径；对象大小、高度、越来越高、向上拉伸都用 `preciseEdit.scale`，且高度轴是 Z，不是 Y\n7. **物理属性可见性链**: mass 仅 massMode=ConstantMass(1) 时可见；density 仅 massMode=Density(0) 时可见；moveDamping/gravityEnabled 需 physicsEnabled=true\n8. **摩擦力默认值**: friction 默认 0.3（非 0），DEFAULT_COLLISION_ENABLED=true，DEFAULT_PHYSICS_ENABLED=false\n9. **ModelCollision 是内部组件，不是可补挂能力**: 客户端 `ModelCollision.ts` 已 `discard: true`；碰撞/物理仍通过 `model.*` 路径操作 `ModelCollisionComponent`"
+    },
+    "pendantEffectEdit": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. **先挂载能力**: 对 `effectObj.effectInfos.*` 做增删改前，必须先用 `scene_set_ability` 挂载 `effectObj`。\n2. **只走编辑态流程**: `effectObj.effectInfos` 在 Ability 配置中 `showInCommand=false`，运行态不可用 `property.set` 修改。\n3. **GUID 唯一性**: 创建时 `guid` 不能与已有特效挂件重复，推荐生成规则为 `时间戳字符串-随机id`。\n4. **改/删先查询**: 修改或删除特效前，调用 `getPendantList_effect` 获取当前列表、`guid`、`index` 和旧值，不要猜测。\n5. **路径前缀**: 属性路径使用 Ability 名 `effectObj`，子属性写完整路径，例如 `effectObj.effectInfos.{index}.effectAssetId`。"
+    },
+    "playerstart": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. **先挂载再设属性**：写 `playerStart.*` 前必须先用 `scene_set_ability` 挂载 `playerStart`。\n2. **只能挂在 NPC / 出生点资源上**：`playerStart` 不适合挂普通几何体或基础模型。\n3. **相机模板优先**：先设置 `playerStart.cameraPreset`，只有 `Custom` 模式才配置 `playerStart.cameraPresetRule.*`。\n4. **相机细项仅编辑态**：`playerStart.cameraPresetRule.*` 的 `showInCommand=false`，运行态相机调整走 `blockly-dsl` 的 `Camera*` 指令。\n5. **运行态改玩家属性要用事件玩家**：Blockly 中需要玩家实体时，用事件参数 `event.arg playerEntity`，不要写死编辑态 `gameObjectId`。\n6. **语音事件前置条件**：使用 `playerStart.audioCaptureEvent` 前先开启 `playerStart.audioCapture`。\n7. **禁止添加背包能力**：见上文；坚持禁止；禁止替代方案。"
+    },
+    "pointLightMgr": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. **统一语义入口**: 新增并配置点光源使用 `scene_add_point_light(target, settings)`；服务负责能力、槽位和回读\n2. **点光源索引从 0 开始**: 工具从 readback 发现新索引，AI 不猜索引\n3. **属性仅编辑态配置**: `PointLightMgrAbility.pointLightConfigs` 的 `showInCommand=false`，运行态不要用指令修改点光源配置\n4. **最多 3 个点光源**: 超过上限会被组件拒绝"
+    },
+    "preciseEdit": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. 旋转轴定义：X=俯仰(Pitch)，Y=倾斜(Roll)，Z=转向(Yaw)，不要按通用欧拉角口径互换。\n2. 位置、旋转、缩放分别调用 `scene_set_position`、`scene_set_rotation`、`scene_set_scale`，直接传数值分量；不要生成包装器或完整属性路径。\n3. 坐标轴以引擎方向为准：上=+Z，下=-Z，左=-Y，右=+Y，前=+X，后=-X；调用 V2 工具时直接把对应分量传入 `x/y/z`。\n4. **高度轴固定为 Z**：用户说“高/高度/变高/越来越高/柱体高度/向上拉伸”时，缩放必须改 `preciseEdit.scale` 的 Z 分量（如 `\"1,1,高度倍率\"`），不要改 Y；Y 是左右方向，不是高度。\n5. **缩放路径固定**：编辑态缩放写 `preciseEdit.scale`，运行态缩放写 `preciseEdit.scaleRef`；不要编造 `model.Scale`、`model.scale` 等路径。\n6. `transformType_pos` / `transformType_rot` / `transformType_scale` 控制 world/local；有父物体时 local position 是相对偏移量，无父物体时 world position 是世界坐标。\n7. `absolutePosition` / `absoluteRotation` / `absoluteScale` 表示是否跟随父物体对应变换；`true`=跟随，`false`=不跟随。\n8. `forward` / `backward` / `left` / `right` / `up` / `down` 是只读方向向量，适合运行态读取，不要用作写入目标。\n9. `MoveAxisLock` / `RotationAxisLock` / `ScaleAxisLock` 结构为 `{ \"x\": boolean, \"y\": boolean, \"z\": boolean }`；这是轴锁对象，不是 `_Vector` 包装器，锁定轴会保留当前值。\n10. 角色、武器等实体可能隐藏或禁用缩放相关属性，缩放失败时优先检查实体类型和属性可见条件。"
+    },
+    "projectile": {
+      "heading": "关键约束 ⭐ (源自前端 ProjectileComponent.ts + misc.ts 验证)",
+      "constraints": "## 关键约束 ⭐ (源自前端 ProjectileComponent.ts + misc.ts 验证)\n\n1. **先挂载再设属性**: 修改 `Projectile.*` 前必须 `scene_set_ability` 挂载 `Projectile`\n2. **属性路径用 Ability 暴露名**: 生命周期配置写 `Projectile.showLifePolicyConfig.*`，运动配置写 `Projectile.showConfig.*`\n3. **所有属性仅编辑态**: Ability 配置中 `showInCommand=false` 且 `showInProperty=true`，不可运行态 `property.set`\n4. **生命周期默认**: `enableDuration=true` + `enableMaxDistance=true`（`lifePolicy` 默认 `Duration|Distance`）\n5. **至少保留一种销毁条件**: 关闭某条件时，若其余条件均关闭则拒绝操作（前端静默拒绝）\n6. **默认值**: `duration=2` 秒，`collisionNum=1`，`maxDistance=1000000` cm"
+    },
+    "shop": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. **严禁用 `scene_configure_ability` 操作商店数据**（如 shopItemDataList），会导致商店点击崩溃！必须使用上述三个专用类\n2. **创建顺序**: 创建商店 → 添加商品 → 设置价格（缺少任何一步商店不完整）\n3. **ID 生成规则**:\n   - 商店 ID (`shopGuid`): `shop_时间戳_随机数`，不得与已有商店 ID 重复\n   - 商品 ID (`shopItemGuid`): `shopItem_时间戳_随机数`，不得与已有商品 ID 重复\n4. **货币类型**: 119979=派对币（平台充值货币，仅可作为商店消费货币，UGC 客户端无增加/设置能力）, 98989=玩家自定义货币；商店商品价格中的金币按最新客户端规则使用 `currencyType=98989` + `currencyGuid=\"user_custom_prop_gold_coin\"`\n5. **自定义货币**: 名称不能与内置货币（金币/派对币）重名，**严禁**创建名称为「金币/金钱/gold/coin/余额」的自定义货币，`currencyGuid` 从 `sideapi_inspect(operation=\"inspectDomainState\", request_json={\"domains\":[\"currency\"]})` 的 `data.state.currency` 获取\n6. **增加/设置货币必须用 V2（派对币除外）**: 使用 Contract 声明的货币运行态指令处理可由 UGC 增减的货币；基础金币只能使用内置货币系统，禁止通过 `user_data_manage` 新建同名金币字段。派对币与平台充值挂钩，只能作为商店价格消费。\n7. **先判断资源操作意图**:\n   - **创建**：做一个、创建、新增、添加商店时，使用 `shop_manage(entity=\"shop\", action=\"create\")` 创建新 `shopGuid`；不要因为场景已有默认空商店就改名复用\n   - **Update**：修改、继续完善、复用、给已有商店上架时，才使用已有 `shopGuid`\n   - **Rename**：改名、重命名、把当前商店名改成某个名称时，才使用 `action=\"rename\"`\n   - **Append**：添加商品和设置价格分别使用 `entity=\"item\"` 和 `entity=\"price\"`，字段按 Tool Schema"
+    },
+    "skillMgr": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. **先挂载再设属性**: 修改 `SkillMgrAbility.*` 前必须 `scene_set_ability` 挂载\n2. **职责仅限对象技能槽**: SkillMgr 只能为对象装备、卸下、配置和释放已有技能预设；不得创建、删除或修改技能预设库中的技能\n3. **必须使用已有技能预设**: 严禁自行通过属性/事件拼接技能功能。唯一合法路径：`getAllSkillList` 工具查询 → 匹配 uuid → 装备到对象的技能槽\n4. **新增技能槽统一入口**: 使用 `scene_add_skill_slot(target, settings)`；`settings.abilityAsset` 必须是真实技能资源 ID\n5. **索引由服务发现**: Application Service 读取当前槽位状态并回传新索引，AI 不猜索引\n6. **技能槽配置仅编辑态修改**: `SkillMgrAbility.builderSkillSlotConfig.{index}.*` 的运行态状态以 `reference.md` 为准，当前均不可运行态 `property.set`\n7. **技能事件只做绑定入口**: 事件路径使用 `SkillMgrAbility.builderSkillSlotConfig.{index}.onSkillActivated` / `onSkillCdCompleted`，响应逻辑交给 `blockly-dsl`"
+    },
+    "skyEdit": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. **查询模板**: 编辑天空前调用 `getAllSkyEditData` 获取可用天空环境模板列表（41个预设，每个有唯一 ID）\n2. **编辑/重置**: 修改时 `reset=false` 并传 `settings`；恢复默认时 `reset=true`\n3. **仅填需要修改的参数**: 编辑时只需提供要修改的字段，其余保持不变"
+    },
+    "spawner": {
+      "heading": "关键约束 ⭐ (源自前端 ObjectSpawnerComponent.ts / ObjectSpawnerConfig.ts 验证)",
+      "constraints": "## 关键约束 ⭐ (源自前端 ObjectSpawnerComponent.ts / ObjectSpawnerConfig.ts 验证)\n\n1. **先挂载再设属性**: 修改 `ObjectSpawnerAbility.*` 前必须 `AddAbilityCommandEventDataInfo` 挂载\n2. **⚠️ 属性写入通道分三类，按下表选工具**：\n\n   | 属性 | 写入方式 |\n   |------|---------|\n   | positionType / spawnMode / positionConfigs / objectConfigs / areaTransform / autoStart | **PropertyCommandEventDataInfo**（EditTime；不支持运行时指令修改） |\n   | maxTotalSpawns / maxExistObjects / spawnInterval | 编辑态 PropertyCommandEventDataInfo；运行态改值走 blockly `property.set` |\n   | spawnCommand | **仅运行态**，用 blockly `property.set`（不可用 PropertyCommandEventDataInfo） |\n\n3. **spawnCommand 仅运行时可用**: 只能运行态通过 blockly `property.set` 控制，不接受 PropertyCommandEventDataInfo。\n4. **maxExistObjects 上限 20**: `@range([0, 20])` — 前端硬限制\n5. **默认值**: maxTotalSpawns=10, maxExistObjects=10, autoStart=true, spawnMode=RandomCycle, damageType的interval初始化=0.5\n6. **objectId 取值**: 必须是资源 GUID 或 prefabNodeEdit 产出的 presetGuid/newPresetAssetId，不能是 aiId/gameObjectId\n7. **枚举必须传字符串**: positionType 只用 FixedAndRandom / FixedAndSequential / Area，spawnMode 只用 RandomCycle / Sequential / Group，禁止传整数\n8. **AddSlot 只创建空槽**: `AddObjectSpawnerSlotCommandEventDataInfo` 仅传 gameObjectId 和 operationType；同一 execute 中先加槽，再用 PropertyCommandEventDataInfo 写完整槽子属性，禁止内嵌 positionConfigs/objectConfigs"
+    },
+    "templates": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. **EditTime vs Runtime 选择**: 无事件触发 → EditTime 直接赋值；涉及\"当...时\"（触发/事件响应/定时/条件）→ 用 `blockly-dsl` 生成积木 DSL\n2. **复杂类型**：位置/旋转/缩放/颜色优先使用专用 V2 工具并传公开数值或颜色字符串。只有 Contract 明确列入 `scene_configure_ability` 的长尾属性才使用其 `properties`，值形态直接看条件 Tool Schema，禁止自行添加包装器。\n3. **编辑态删除**: 编辑态删除对象用 `scene_delete_object`（直接放 steps）；运行态销毁实体走 `blockly-dsl` 积木\n4. **aiDesc**: 关键对象（NPC/Boss/机关/标记）设语义描述，普通装饰物可选，内容用自然语言 <=100字\n<!-- 2026-07-31 新增；原因：实测创建类请求按 Unity Z-forward 先验把\"前方\"写进 Z 分量（request_20260731_141319.log）；CreateCmdData 片段只注入本节，轴向约定必须落在这里才能被创建路径命中。 -->\n5. **坐标轴向（方位词→分量映射）**: 世界坐标轴向为 **X=纵深（前=+X/后=-X）、Y=左右（左=-Y/右=+Y）、Z=高低（上=+Z/下=-Z）**，以引擎 `Vector.forward=(1,0,0)`/`right=(0,1,0)`/`up=(0,0,1)` 为准。用户说\"前方/后方/左边/右边/上方/旁边\"等方位词时，`pos` 必须按此映射计算偏移分量；**禁止按 Unity 习惯把 Z 当作前后方向**——Z 是高度轴，只动 Z 分量等于竖直抬升/下压，不是前后移动"
+    },
+    "item": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. `ItemAbility.onItemUsed` 参数：0=使用者，1=道具自身。\n2. `ItemAbility.onItemBatchUsed` 参数：0=使用者，1=道具自身，2=使用数量。\n3. 资源 GUID 必须来自 `item_resource_create`、正式环境 `search_asset` 或 inspect；禁止猜测。\n4. 修改已有道具资源统一用 `preset_edit`，禁止重新创建同名资源规避修改。\n5. 背包能力由运行态系统提供，不给玩家对象额外挂载 InventoryAbility。\n6. 持续回血/加速等效果用 `buff_manage` 创建 Buff，再在道具使用 DSL 中调用 Contract 声明的施加 Buff 指令。\n7. 每次写入后 inspect/readback；timeout/partial 时先查状态再决定是否重试。"
+    },
+    "touchDetector": {
+      "heading": "关键约束 ⭐ (源自前端 TouchDetectorComponent.ts 验证)",
+      "constraints": "## 关键约束 ⭐ (源自前端 TouchDetectorComponent.ts 验证)\n\n1. **触发器必须关闭自身阻碍** ⚠️: 物体作为触发器使用时，**必须同步设置 `model.collisionEnabled = false`**，关闭碰撞阻挡，让角色/玩家可以穿过，否则触发区域会阻碍移动。\n2. **先挂载再设属性**: 修改 `touchDetector.*` 前必须 `scene_set_ability` 挂载 touchDetector\n3. **⚠️ 阵营查询强制**: 设置 `factionDetectTypes` 前**必须调用【阵营系统查询工具】**获取阵营列表，语义匹配 `campName_lang` 后填入序号，**禁止凭经验猜测**\n4. **阵营单选**: `factionDetectTypes` 仅接受单个序号字符串，不支持多选或数组\n5. **阵营特殊值**: `\"-1\"` = 所有阵营(不含无阵营)，`\"-2\"` = 所有阵营(含无阵营)，默认 `\"-1\"`\n6. **enable 控制**: `touchDetector.enable=false` 时不触发任何进入/离开事件，默认 `true`\n7. **属性状态以Contract 声明为准**: 属性路径、可编辑/可运行态修改状态、枚举值与事件路径见 `touchDetector/reference.md`，正文不重复维护属性表。\n8. **球形尺寸**: `sphereRadius` / `sphereDiameter` 是组件实现细节，不是 AI Contract 声明路径；配置球形触发区时写 `touchDetector.transform` 或运行态写 `touchDetector.scale`。\n9. **⚠️ transform.scale 是倍数，不是世界坐标尺寸**: `touchDetector.transform` 的 scale 分量（`_Transform` value 第三段）是**相对于模型自身尺寸的缩放倍数**，`1,1,1` = 与模型等大，`2,2,2` = 各轴放大一倍。**禁止填入世界坐标数值**（如 `600,300,600`），典型合理范围为 `1~5`，超过 `10` 视为错误。\n10. **⚠️ 贴地伤害区（熔岩/毒雾/陷阱）**: `touchDetector.transform` 本地 position 应接近 `(0,0,0)`，**禁止 z 大偏移（如 50）**；须与模型贴地范围对齐。模型若为竖板 mesh，须先 `transform.rotation` 躺平（常见 `rotation.x=90`），再 scale 宽/深；**禁止** `rotation=0` 且仅 `scale.y=0.3` 当「薄层熔岩池」。"
+    },
+    "ui": {
+      "heading": "关键约束 ⭐（Honey screenSpec 路线）",
+      "constraints": "### 关键约束 ⭐（Honey UI）\n\n1. **创建/修改 UI 内容**：调用 `build_ui_screen(request_json=<screenSpec JSON>, name=..., surface=...)`。屏幕 UI 可省略 surface 或传 `screen`；世界 UI 必须传 `world`。工具展开 `.ui` 并通过 saveUiFile 落盘，资源目录由工具内部按 surface 选择，外部不传路径。\n2. **screenSpec 字段**：`kind`(`login`|`hud`|`screen`) / `surface`(`screen`|`world`, 别名 `space`) / `title` / `subtitle` / `fields[{id,label,placeholder,inputType}]`(→真 MWInputBox) / `buttons[{id,text}]` / `contentLines[{id,text}]`(HUD 状态行) / `layoutRegion` / `width`/`height` / `goal`。所有字段可选，缺省由 kind/登录意图自动推理。\n复杂布局用 `tree` 节点。\n3. **修改方式**：改布局、控件、文本默认值、尺寸或样式时，更新 screenSpec 后重新调用 `build_ui_screen` 保存。\n4. **自检内置**：`build_ui_screen` 发送前自动跑质量门；不合格回 `issues`/`repairHints` 让你修后重试，不落盘。也可先 `apis.ui_builder.validate_spec(screen_spec)` 本地预检。\n5. **登录意图自动补齐**：goal/文本含 `登录/login/sign in/登入` 时自动补 account+password 字段、Login 按钮并居中。\n6. **HUD 需 ≥2 行状态**：`kind=hud` 至少 2 行 `contentLines`/`hudMetrics`/`feedbackStates`。\n7. **运行时改值**：运行态 Blockly **不能直接 `property.set`** 修改 UI 控件/画布属性；显隐、改文本、换图等**必须**调用 UI 专用指令（隐藏/显示屏幕画布用 `ScreenUICanvasVisibleInstruction`，隐藏/显示控件用 `ScreenUIWidgetVisibleInstruction`）；`objType=\"screenUI\"`（屏幕 UI）或 `objType=\"worldUI\"`（世界 UI），二者**严禁**填 gameObjectId，**必须**用 `canvasGuid + widgetGuid` 定位（`canvasGuid` 取 `build_ui_screen` 返回值，`widgetGuid` 用 `sideapi_inspect(operation=\"inspectUiDetail\", request_json={\"canvasGuidList\":[\"<canvasGuid>\"]})` 在画布作用域回读）；禁用旧 `objType=\"ui\"`。常用 `ScreenUISetTextInstruction`/`ScreenUIWidgetVisibleInstruction`/`ScreenUISetImageInstruction` 等。\n8. **属性绑定**：screenUI 画布/图层属性绑定可用 `UICanvasCommandEventDataInfo`；screenUI/worldUI 控件属性绑定用 `UIWidgetCommandEventDataInfo`。`operationType=3` 为 AddBind，`operationType=4` 为 DeleteBind；必须提供 `subMode`、`canvasGuid`、`path` 和绑定来源字段，控件绑定还必须提供 `widgetGuid`。worldUI 暂不开放 `UICanvasCommandEventDataInfo` 画布级绑定。\n9. **UI 控件 Blockly 事件绑定流程**：必须先 `build_ui_screen` 创建/保存 UI，再用返回的 `canvasGuid` 调 `sideapi_inspect(operation=\"inspectUiDetail\", request_json={\"canvasGuidList\":[\"<canvasGuid>\"]})` 按控件 name 回读真实 `widgetGuid`，最后调用 `sideapi_blockly_compile`。不要在 UI 未创建前查 widget 路径，不要用场景对象或出生点 GUID 代替 `canvasGuid/widgetGuid`。\n10. **UI 控件 Blockly 事件路径与参数**：按钮点击 `data.buttonProperties.buttonEvent.onClickEvent`，按钮按下 `data.buttonProperties.buttonEvent.onPressEvent`，按钮松开 `data.buttonProperties.buttonEvent.onReleaseEvent`，输入框输入完成 `data.inputBoxProperties.onInputCompleteEvent`。Screen UI 事件参数只填 `0:triggerPlayer:player:Entity`；World UI 额外有 `1:ownerWidget:widget:Entity`。\n11. **玩家数据 owner 硬规则**：点击按钮/输入完成后给玩家加金币、改玩家数据、发奖励时，`owner` 必须是 `{ \"type\": \"event.arg\", \"argId\": \"triggerPlayer\" }`；严禁用 `{ \"type\": \"entity.scene\", \"gameObjectId\": \"出生点/场景物体/widgetGuid\" }`。出生点、UI 控件、画布都不是运行态玩家 Entity。\n12. **Blockly 编译即完成 UI 事件绑定**：`sideapi_blockly_compile` 成功后，不要再用 `UIWidgetCommandEventDataInfo`、手写 `InstructionInfo` 或 `MaterializeRuntimeAttachmentCommandEventDataInfo` 追加/覆盖同一个 UI 控件事件绑定。\n13. **世界 UI 的挂实体/transform/spaceMode 不在本段完成**：UI 内容用 `build_ui_screen(surface=\"world\")`，挂实体与槽位属性走 worldUI 域（worldUIV2 能力路线）。\n14. **形状缺省背景图（看 goal）**：goal/用户原话标注圆形（`圆形`/`circle`/`circular`/`round button` 等）时，未写 `guid` 的背景图槽位缺省用 **`163396`**（DrawAs=图片）；未标注或其它形状（方形）缺省用 **`142911`**，DrawAs=**1（比例九宫格）**且 Margin 比例 **0.1**。已显式 `guid`/`imageId`/`background` 贴图 id：若为方形资源 `142911` 同样走 0.1 比例九宫格，其它 guid 仍按图片；输入框边框（`756191`，像素九宫格）保持不动。\n15. **头像选型看交互**：纯展示用 `image`；要求可点击（打开详情/面板）时用 `button`（可空 text、w=h），再绑 onClickEvent；无点击需求时不要把头像做成 button。\n16. **已有 UI 未点名改色则不动色**：UI 已创建后，用户未明确要求改某个控件/背板/文字颜色时，覆盖重建须原样带回 `color`/`textColor`/底板染色等，禁止顺手换色或套默认配色；仅用户点名改色时才改对应项。\n17. **整列同色优先于逐行换色**：标签|数值属性表用并排 `col`，每列整列同色；禁止逐行换底板色。根 panel 默认灰玻璃（`background:true`，省略 `color`）。色值从夏日/美拉德选取。示例见 ui examples 6b。夏日：#03B8D9/#05AC98/#67B7C3/#ADD5DA/#B6BFC3/#D0C0A3/#E2683A/#FAD4C1/#FDA576/#FDAA6B/#00ECDC/#19EAB0/#B8F18C/#FCEDAB/#FFDD53；美拉德：#E39D43/#3F1516/#5A1C13/#8A2712/#984637/#CB731D/#E6D8C4/#E9C843/#F4F4AE/#C18332/#5C3D43/#7D4534/#A2AB9C/#AE8573/#DCC88B。\n18. **列表意图识别**：关键词（列表/商店/背包/排行…）、同级 ≥2 条 row/panel、或同列 X → `listIntent`；属性键值表按列上色，逐行花色底板时 validate 给软提示。\n19. **面板尽量紧凑**：居中弹窗/详情/列表的根 `panel` 必须显式写 `w`（常见 360~560，多列表可到 640），底板贴内容，禁止依赖缺省超宽面板导致两侧大片留白；叶子 text 勿滥写过窄固定 w 却让外框很宽。根层可见总底板由 builder 按尺寸自动留 5~20 外扩边距，勿 pad:0 贴边。\n20. **文本防超框（保字号、放大布局）**：`text`/`title`/`button` 保持统一字号，禁止为塞框改小 `size`；builder 按文案回测所需宽高，不够则放大控件/父布局。空 text 头像按钮仍按几何尺寸。\n21. **方位词自动落位（九宫格）**：goal/`layout` 含「右上/左上/右下/左下/右中/左中/上中/下中/居中/顶部/底部/左侧/右侧」等方位词时，builder 自动把根面板放到对应九宫格位置（贴边留 48px，world 16px）。tree 根显式 `align`/`x`/`y` 或 `style.panelX/panelY` 优先；「右上」触发 HUD 紧凑档。\n22. **色彩深度层次（默认子级更深）**：比深度（棕>红>橙>黄）不是亮度；根宜灰玻璃半透明，列色块/顶栏用更深色板色。允许跨夏日/美拉德。相邻画布仍优先整块换板。未点名改色的已有 UI 仍不动色。"
+    },
+    "userData": {
+      "heading": "关键约束 ⭐ (运行时数据前置门控，不可跳过)",
+      "constraints": "## 关键约束 ⭐ (运行时数据前置门控，不可跳过)\n\n0. **⚠️ 目标实体必须是玩家（硬性前提，不满足则禁止使用本 skill）**：运行态读写玩家数据（积木 `property.get` / `property.set`）的 `target` **只能是 Player 实体**，不能指向场景模型、道具、触发区域等非玩家对象。\n   - **典型错误**：在 Buff 的 `OnBuffPeriod` 中，对模型实体（如 `GetValueFromArgs[0]` 是正方体）用玩家数据 `property.set(key=flash_state)` 存对象级闪烁计数——模型没有玩家数据字段，运行时无效。\n   - **判断方法**：任务中 Buff/事件/积木要操作的实体是否是玩家角色？若是模型/场景对象/非玩家实体，**禁止使用本 skill**。\n   - **替代方案**：非玩家实体的状态存储使用 `customData` skill——给对象添加 `CustomAbility` 数字字段，运行态在积木里用 `property.set`/`property.get` 读写（见 customData 与 `blockly-dsl`）。\n   - **全局共享值排除**：需求语义是「全游戏/全房间共享一份」时，禁止建成玩家数据，改用 `game_data_manage` + `inspectGameData`。\n   - **必须满足本条后**再执行下方第 1–3 步。\n\n1. **运行时数据前置门控** ⚠️ 强制自修复（三步走，不可跳过）：\n   - **Step 1 — 提取变量名**: 扫描 Input 中所有将在 blockly-dsl 里用 `property.get`/`property.set` 读写的玩家字段 key（如 `has_key`、`score`）\n   - **Step 1.5 — 内置货币拦截**: 若变量名/displayName 语义为 `金币`、`gold`、`coin`、`派对币`、`party_coin` 等内置货币，**禁止创建玩家数据**；金币直接使用编辑器内置自定义玩家数据；派对币是平台充值货币，禁止用 userData 或货币指令增加/设置\n   - **Step 1.6 — 货币意图归一化**: 检测到用户意向使用派对币（如\"派对币\"、\"party coin\"、\"测试派对币\"）时，**只能映射到内置派对币**，禁止新建任何派生/测试/临时派对币数据；检测到金币意向时，若用户没有明确说\"新建货币\"/\"新增货币\"/\"创建自定义货币\"，默认使用内置金币\n   - **Step 2 — 调用 `inspectUserData` 确认存在性**: 必须先调用此工具查询当前已有的玩家数据列表，确认每个变量是否已存在（通过 uuid 或 displayName 匹配）\n   - **Step 3 — 不存在则立即创建**: 若 `inspectUserData` 找不到该变量，调用 `user_data_manage(action=\"create\", property_id=<key>, settings={...})`，readback 后运行态才能使用。\n   - ❌ 禁止假设\"另一个任务已创建\"——`inspectUserData` 里没有就是不存在，必须自建\n   - ❌ 禁止把 `金币` / `派对币` / `测试派对币` 等当作缺失玩家数据自建\n   - ❌ 禁止在积木里直接 `property.set` 玩家数据而不先确认数据已存在\n   - **自检公式**：`每个变量名 → 排除金币/派对币 → inspectUserData 有记录？→ 没有 → user_data_manage(create)`\n   - **uuid 规范**：自行创建时，uuid 使用变量的英文名（如 `has_key`），displayName 同名，便于跨任务引用\n   - **字段硬规则**：`property_id` 使用稳定英文 key；settings 只允许 Tool Schema 声明字段，玩家数据不接收 `gameObjectId`\n2. **内置货币排除**: 金币/派对币禁止新增为玩家数据。金币是编辑器内置的自定义玩家数据，用户未明确要求新建货币时直接使用现有金币；派对币是平台充值货币，不允许创建\"测试派对币\"等变体，也不允许通过 `AddCurrencyInstruction_V2` / `SetInventoryCurrencyInstruction_V2` 增加或设置；派对币只能在商店等消费场景中作为价格货币使用\n3. **目标语义不可混用**：玩家数据运行态在积木用 `property.get`/`property.set`（`target`=玩家、`key`=uuid）；场景对象属性/自定义字段的读写同样走积木 `property.get`/`property.set`，但 `target`=场景对象（见 customData 与 `blockly-dsl`）。玩家与对象目标语义完全不同，禁止相互替代。\n4. **数据一致性保障**: 玩家数据字段对所有玩家统一定义（相同字段名、类型、默认值）；游戏运行时每个玩家可以有自己的值；一旦定义，所有玩家自动拥有该字段（含默认值），确保运行时不会出现字段缺失\n5. **输出顺序**: `EditTime 创建玩家数据` → `运行态积木 property 读写`"
+    },
+    "water": {
+      "heading": "关键约束 ⭐",
+      "constraints": "## 关键约束 ⭐\n\n1. **固定资源 ID**: 水体必须使用预制体 `asset_id: \"643652\"`，禁止用 getAssets 查询\"水池/水面\"（通用库中的是装饰模型，无游泳/浮力/水波逻辑）\n2. **能力预挂载**: 资源 643652 已预挂载 WaterVolumeAbility，**不需要** `scene_set_ability`\n3. **透明度方向**: `transparency` 0=完全透明，1=完全不透明（默认 0.3 半透明）\n4. **浮力前提**: 浮力生效需对象启用 `model.physicsEnabled` + `model.gravityEnabled`\n5. **preset 先设**: 切换 preset 会**覆盖**后续属性，必须先设 preset 再设自定义颜色/波浪参数\n6. **无 functions/无 instructions**: 此能力仅有属性和事件\n7. **运行时改值**: 编辑态用 scene_configure_ability；运行态改 WaterVolumeAbility 属性走 blockly `property.set`（禁止 EntityPropertyInstruction）"
+    },
+    "weapon": {
+      "heading": "关键约束 ⭐ (源自前端 WeaponComponent.ts / EquipmentSlotComponent.ts 验证)",
+      "constraints": "## 关键约束 ⭐ (源自前端 WeaponComponent.ts / EquipmentSlotComponent.ts 验证)\n\n1. **weaponGuid 必须真实**: `WeaponSlotAbility.weaponGuid` 是 **EditTime**(showInCommand=false)，必须从资源库查询真实 GUID、本地预设 assetId，或 [官方默认武器 preset](#官方默认武器-preset未指定类型时)（近战 `$000v01uhsqaax6mse6g9sdv89022mxx` / 远程 `$000v01uhsqaax6me5z2gp088gsyt145`，未指定种类时的 SSOT，**禁止**编造占位符）\n2. **武器槽 vs 武器对象**: WeaponSlotAbility 挂在**角色**上（装备武器），HotWeapon/MeleeWeapon 挂在**武器对象**上（定义武器属性）\n3. **自动攻击需阵营**: `weaponActivateType=\"WhenEnemyInRange\"` 必须配合 `BasicAbility.faction` 设敌对阵营\n4. **近战 criticalChance 是百分制**: 默认20表示20%暴击（不同于 health.critical 的0-1制!）\n5. **onAttackOther/onKillOther 有3个参数**: 包含武器实体引用（旧文档遗漏）\n6. **HotWeaponItemAbility/MeleeWeaponItemAbility 强挂边界**: 底层 `Entity.addAbility(name, true)` 可绕过 `supportedRoles`；当前统一流程通过 `AddAbilityCommandEventDataInfo(ignoreCheck=true)` 显式强挂普通模型。必须 readback 验证看到目标 Ability 后才允许继续配置/保存；若失败必须报告命令层能力缺口，禁止切换到其它创建路径\n7. **已有 HotWeaponItemAbility/MeleeWeaponItemAbility 预设属性必须走流程 B（单节点编辑会话）**: 修改已有武器预设的 `damage`/`fireRate`/`criticalChance`/`meshID` 等属性时，必须在 `OpenPresetNodeEditSessionDataInfo` … `CommitPresetNodeEditSessionDataInfo` 之间修改；**禁止**用 `EnterPreviewModeWithPresetAssetDataInfo`（会打开资源编辑界面）。新建武器资源不适用本条补写，属性和事件脚本必须保存前写入临时实体。会话内 `PropertyCommandEventDataInfo` / `InstructionInfo`（清空）的 **`gameObjectId` 填 `\"\"`**；**`sideapi_blockly_compile` 的 `target.gameObjectId` 必须填 Open readback 的 template GO id**。`prefabAssetGuid` = 武器的 `presetAssetId`；`sceneGuid` 来自 `inspectPresetDetail` 的 `prefabNodes.rootSceneGuid`。`presetAssetId` 获取方式（**按武器来源选择工具，严禁猜测或使用占位符**）：\n   - **武器挂载于 NPC/玩家武器槽**（任务/用户语义含\"NPC/玩家佩戴/携带/挂载/身上的武器\"）→ 调用 `sideapi_inspect(operation=\"inspectSceneObjectAttachments\", request_json={\"gameObjectIds\":[\"<npcGameObjectId>\"]})` 读 `data.objects[].npcWeaponSlotPresetId` 溯源（传**角色**的 gameObjectId，如出生点）\n   - **场景中独立存在的武器对象** → 调用 `sideapi_inspect(operation=\"inspectSceneObjectAttachments\", request_json={\"gameObjectIds\":[\"<weaponGameObjectId>\"]})` 读 `data.objects[].presetIdFromObj` 溯源（传**武器**自身的 gameObjectId），**不要重新创建预设**\n   - **新建武器资源**（含\"新建/创建/生成/做一把武器\"等关键词）→ 先按 [唯一新建路线：场景实体 → 武器预设](#唯一新建路线场景实体--武器预设) 执行。拾取包裹/数据载体使用 `SaveEntityAsPresetDataInfo`；真实 Hot/Melee 使用 `AddAbilityCommandEventDataInfo(ignoreCheck=true)` 强挂并 readback 验证，属性和事件脚本保存前写入临时实体，失败则报告能力缺口\n   - **指令中已明确引用了武器资源 assetId** → 该 assetId **本身即为 `presetAssetId`**，**直接**用于 `OpenPresetNodeEditSessionDataInfo.prefabAssetGuid`，**无需**再调用任何溯源工具，**禁止**因此新建预设。常见形式包括：\n     - 构建步骤里已写 `WeaponSlotAbility.weaponGuid = \"某assetId\"`\n     - 任务描述中明确给出武器 assetId/GUID\n     - 指令数据中出现 `switchWeaponInstruction._item.property.__type__ = \"GetFixedAsset\"`，其 `value` 字段（如 `\"221099\"`）即为武器 assetId，**直接作为 `presetAssetId` 使用**，不要再调 `inspectSceneObjectAttachments`（`presetIdFromObj`/`npcWeaponSlotPresetId`）\n   ⭐ **若任务描述出现\"玩家/NPC佩戴/携带/挂载/身上的武器\"语义，或明确写有角色对象（出生点/NPC）的 gameObjectId，必须用 `inspectSceneObjectAttachments({\"gameObjectIds\":[\"<角色gameObjectId>\"]})` 读 `data.objects[].npcWeaponSlotPresetId` 溯源，禁止改用武器自身 gameObjectId 读 `data.objects[].presetIdFromObj`**\n\n   ⚠️ **重要：修改 MeleeWeaponItemAbility 的属性前，必须先设置 `MeleeWeaponItemAbility._openWeaponAbility=false`，否则属性修改不会生效。建议 Open 会话后第一步先下发该属性为 false，再进行其他属性修改。**\n8. **武器槽内武器不能直接改属性**: 场景里独立存在的武器对象可以直接用 `PropertyCommandEventDataInfo` 改其他能力属性；但如果武器是挂在 `WeaponSlotAbility` 上的装备武器，则不能直接修改其属性，需走约束 7 溯源 `presetAssetId` 后 **流程 B** 修改，**不要重新创建预设**。溯源工具：若用户意图是\"NPC身上/佩戴/携带/挂载的武器\"，调用 `inspectSceneObjectAttachments({\"gameObjectIds\":[\"<npcGameObjectId>\"]})` 读 `data.objects[].npcWeaponSlotPresetId`；若是场景中独立的武器对象，调用 `inspectSceneObjectAttachments({\"gameObjectIds\":[\"<weaponGameObjectId>\"]})` 读 `data.objects[].presetIdFromObj`\n9. **⚠️ 击退/命中效果必须区分两种截然不同的机制**（混用必错）：\n   - **碰撞接触型**（角色物理碰到/踩到武器对象时触发）→ 使用 `DamageAbility.knockBackMagnitude_m2cm`。适用场景：地面上放置的陷阱武器、触碰即扣血的危险区域。\n   - **射击命中型**（枪弹/攻击击中敌人时触发）→ 绑定 `HotWeaponItemAbility.onAttackOtherInstruction`（远程）或 `MeleeWeaponItemAbility.onAttackOtherInstruction`（近战）武器事件，在事件数据里放 `ApplyKnockBackInstruction_m2cm`。**⛔ 禁止用 `DamageAbility` 实现射击命中型击退。**\n   - 判断口诀：用户说\"**打中/击中/射中**敌人时被击退\" → 射击命中型 → 绑定武器命中事件；说\"**碰到/触碰**武器时受到伤害/击退\" → 碰撞接触型 → `DamageAbility`。\n   - **已有 HotWeapon/MeleeWeapon 预设的事件写入**：清空用 `InstructionInfo type:2 data:[]`（`gameObjectId` 填 `\"\"`），写入新事件脚本用 `sideapi_blockly_compile`（`target.gameObjectId` 填 Open readback 的 template GO id）。新建武器资源的事件脚本必须在临时实体阶段保存前写入。\n   - ⚠️ **其他能力**（非 HotWeapon/MeleeWeapon）的事件绑定是否走预设编辑模式，取决于用户语义是否明确涉及修改预设；若仅针对场景对象则可直接用 `sideapi_blockly_compile` + 场景对象 ID。\n10. **⛔ 超时后禁止用相同 gameObjectId 重发 CreateCmdData**：若 executeSteps 含 `CreateCmdData` 后返回超时，该对象可能已在客户端局部创建。重试时**不得复用**相同 `gameObjectId`，应先调 `getAllBasicInfo` 确认对象是否已存在，若存在则跳过 Create 直接进行后续步骤。\n11. **⛔ meshID 禁止编造（workflow，非 Honey preflight）**：`HotWeaponItemAbility.meshID` / `MeleeWeaponItemAbility.meshID` 是武器组件暴露的**模型资源 ID 字符串**（UGC setter + `@assetEditTypes` 已限定可接受的资源类型）。AI 换外观时应先 `search_asset(kind=\"model\")` 取返回的**真实资源 ID**（JSON 字段名常为 `guid`，可为数字 assetId 或 `$…` 形式）再写 PropertyCommand；**禁止**臆造占位符。**不要**在 Honey 侧对 meshID 值再做 isdigit/来源类 preflight——合法与否由编辑器/UGC 接受。\n12. **⛔ 禁止重复保存同名武器资源**：用户要「一把 / 一个」武器时，整次任务只允许沿统一流程保存一次 `SaveEntityAsPresetDataInfo`，且必须传稳定 `aiAssetId`。保存前后必须 `inspectPresetDetail`：若同 `aiAssetId` 或同名 `presetName` 已有正确 `abilityTag` 资源，复用已有 `presetAssetId` 继续配置或放置；若已有资源 `abilityTag` 错误，停止并报告需要人工清理，禁止用相同 `presetName` 再保存第二条。\n13. **⛔ EnterPreview 会导致预设编辑 GO 损坏（Client 已证实）**：`EnterPreviewModeWithPresetAssetDataInfo` 块内 **禁止**把 `presetAssetId` 当作 `PropertyCommandEventDataInfo.gameObjectId`。EnterPreview 会打开 UI、污染 `objMap`（`Invalid Preset Previewing Obj`）、预览 spawn 竞态后 `entity.gameObject?.setStaticMeshAsset is not a function`，手动进预设编辑会看不到 GO。**不是**流程 B「GO 没创建完」——流程 B 由 Client 会话内同步 spawn template GO；根因是 EnterPreview 路径错误。**meshID 值本身**由 UGC `HotWeaponComponent`/`MeleeWeaponComponent` 的 `@assetEditTypes`（CustomModel/StaticMesh/Model 等）在编辑器侧校验，Honey preflight **不对 meshID 做格式门禁**。"
+    },
+    "worldUI": {
+      "heading": "⚠️ 约束速查（Honey worldUI：build_ui_screen 产内容 + 指令挂实体）",
+      "constraints": "## 约束速查（Honey worldUI）\n\n**两层分工**：canvas 内容用 `build_ui_screen(surface=\"world\")` 生成并 saveUiFile 落盘；挂实体、transform 与数据绑定走指令。\n\n| 操作 | 接口 | 要点 |\n|---|---|---|\n| 创建/修改世界 UI 内容 | `build_ui_screen(request_json=<screenSpec>, surface=\"world\", name=...)` | screenSpec 用 `tree` 节点描述 bar/text/title/image/layout；改内容时更新 screenSpec 后重新保存 |\n| 回读 guid | `sideapi_inspect(operation=\"inspectUiDetail\", request_json={\"canvasGuidList\":[\"<canvasGuid>\"]})` | canvasGuid 取 `build_ui_screen` 返回值；若为空立即回读真实 worldUI 图层 canvasGuid。`newAssetGuid` 是资源 GUID，禁止当作 `targetUICanvasGuid`。widgetGuid 从该画布的 `widgetGuidList` 按 name 匹配，禁止预测 |\n| 挂实体 | `AddAbilityCommandEventDataInfo(worldUIV2)` + `AddWorldUISlotInfo` + `PropertyCommandEventDataInfo` | `AddWorldUISlotInfo` 只传 `gameObjectId`；`targetUICanvasGuid/spaceMode/transform` 后续用 PropertyCommand 设置 |\n| 数据绑定 | `UIWidgetCommandEventDataInfo` | 仅用于控件属性 `operationType=3` AddBind / `operationType=4` DeleteBind；必须带 `subMode:\"worldUI\"`、`canvasGuid`、`widgetGuid`、`path`。不要用 `UICanvasCommandEventDataInfo` 做 worldUI 画布/图层绑定 |\n| 运行时兜底 | `WorldUISetTextInstruction` / `WorldUISetImageInstruction` / `WorldUIWidgetVisibleInstruction` | 仅用于 AddBind 覆盖不了的格式化文本、条件变色、临时显隐 |\n| 尺寸与 transform | `worldWidth/worldHeight` + `inspectUiDetail` + `PropertyCommandEventDataInfo` | 世界 UI 尺寸写在 screenSpec，落盘后回读实际尺寸再计算 transform |\n\n**回读硬规则**：`inspectUiDetail` 必须紧跟 `build_ui_screen(surface=\"world\")` 之后做，中途不要切回 screenUI 子模式；不要用 `inspectUiTree` 找 widgetGuid，它返回所有已挂载画布的控件，多画布同名时会拿到陈旧控件并导致 `UI_WIDGET_MISSING`。\n\n角色自身血条使用 health 内置 HeadUI；worldUIV2 + AddBind 用于独立告示牌或远程对象数据。"
+    },
+    "gameConfig": {
+      "heading": "关键约束 ⭐",
+      "constraints": "## 关键约束 ⭐\n\n1. **EditTime 指令**: 使用 `game_config_manage`。\n2. **AI 只输出极简协议**: 只描述表名、列、行和值，禁止输出 `Head`、`columns`、`accessorKey`、`typeInfo`、Base64、文件路径。\n3. **底层由 adapter 处理**: adapter 会生成 `blockly/config/{fileId}-ugc.json` 与 `blockly/web/{fileId}-web.json`，并通过 `ugc.GameConfigSystem.ins` 保存和刷新。\n4. **第一列由客户端自动生成**: 表格落盘第一列由客户端生成行索引，值从 1 开始递增；AI 输出的 `cols` / `rows` 只包含玩家明确要求的数据字段，禁止把系统索引、`rowName`、`ID`、`id`、`编号`、`序号`、`索引` 放进 `cols` / `rows`。\n5. **禁止自动补业务 ID 列**: 除非用户明确要求“ID / 编号 / 序号 / 唯一标识”字段，否则不要为了凑表格习惯或行号自动生成 `ID`、`id`、`编号`、`序号`、`索引` 等列；“我需要 10 个数据”表示 10 行数据，不表示需要 ID 列。\n6. **资源只传 assetId**: `Asset` 单元格只传 `{ \"assetId\": \"360262\" }`，禁止让 AI 填 `name/icon/type`。\n7. **对象只传 gameObjectId**: `Entity` 单元格只传 `{ \"gameObjectId\": \"4F8A4734\" }`，禁止让 AI 填 `guid/name/icon/type`。\n8. **引用必须真实存在**: adapter 会无交互查询对象/资源元数据，查不到会失败，不要编造 id。\n9. **新建不填 id**: 新建表通常不要传 `id`，由系统生成；更新、删除或增量修改已有表时必须传已有配置表 id。\n10. **删除前校验**: 删除表会校验 `deleteEnalble`，内置或不可删除配置表不能删除。\n11. **增量修改不改结构**: `upsertRows`、`deleteRows`、`setCells` 只修改已有表的数据行/单元格，不新增列、不改变列类型。\n12. **颜色字段必须用 Color 类型**: 字段名或语义包含“颜色 / 色调 / 染色 / 模型颜色 / 材质颜色 / color / tint”时，默认列类型必须是 `Color`，值写 `{ \"r\": 255, \"g\": 0, \"b\": 0, \"a\": 1 }` 这类结构化颜色；禁止把颜色建成 `String` 或写成 `\"FF0000FF\"`、`\"#FF0000\"`、`\"红色\"` 等字符串，除非用户明确要求保存“颜色文本/颜色码”。\n13. **回读当前配置表**: 2026-07-01 原因：Honey 已暴露只读桥工具 `sideapi_game_config_all_basic_info(request_json=\"{}\")` 与 `sideapi_game_config_details(request_json=\"{\\\"fileIdList\\\":[\\\"<fileId>\\\"]}\")`。前者无需业务入参，用于获取所有配置表基础信息与 `fileId`；后者用 `fileIdList` 获取指定配置表详情、真实 `tableId`、系统行索引、列字段 ID 与 `Data`。若需要全部详情，可先调用基础信息工具取全部 `fileId` 后传入详情工具；Honey 包装层也支持详情工具空入参时自动补齐。"
+    },
+    "blockly-dsl": {
+      "heading": "V2 运行约束",
+      "constraints": "## V2 运行约束\n\n- 全部运行态积木指令：只维护在本文件 `# 积木所支持指令列表`，各业务 skill 不再维护 `## Blockly 运行时指令`。\n- **禁止积木指令添加/移除 entityAbility（组件能力）**：`GiveAbilityInstruction` / `RemoveAbilityInstruction` 仅用于 SkillMgr 战斗技能槽操作；entityAbility（如 WeaponSlotAbility、health、model、touchDetector、CharacterAbility 等实体结构能力）**只能在建造态**用 `scene_set_ability` 挂载，积木中不可运行时添加或移除。装备武器用 `switchWeaponInstruction`。\n- 运行态积木指令统一查本文件下方 `# 积木所支持指令列表`，不要回到业务 skill 里找 `Blockly 运行时指令`。"
+    },
+    "liteScene": {
+      "heading": "关键约束 ⭐（不可跳过）",
+      "constraints": "## 关键约束 ⭐（不可跳过）\n\n1. **与 `level` skill 严格区分**\n   - 本包 = **多关卡场景**（liteScene 子关卡文件）\n   - `level` = **角色经验等级**（LevelAbility / AddExp）\n   - ❌ 禁止把「建关卡 / 跳关」做成 LevelAbility 或猜 `skills/level`\n\n2. **前置门控：先 inspect，再写关卡名**\n   - **Step 1**：从需求提取目标关展示名 / 跳转意图（新建 / 删除 / 切关 / 玩法传送）\n   - **Step 2**：调用 `sideapi_inspect(operation=\"inspectLiteSceneLevelList\")`（无额外 request 亦可）\n   - **Step 3**：只用返回的 `data.levels[].levelFileName` / `levelId` / `displayName`；`data.currentLevelFileName` 为当前编辑关\n   - ❌ 禁止猜测 `关卡1`、`level1`、`NewLevel2` 等未回读名称\n   - 若 `freshness.staleReasons` 非空：禁止瞎编；先排除编辑态未就绪 / 无 LiteSceneLevelMgr\n\n3. **EditTime 只用 `lite_scene_manage`**\n   - `action=\"create\"` 创建，`action=\"delete\"` 删除；字段按 Tool Schema\n   - 编辑态切关不属于该工具：请用户在编辑器 UI 切关，或只用运行态 Jump* 传送玩家\n   - 字段与模板见 `liteScene/reference.md`\n\n4. **运行态一律 blockly-dsl**\n   - Jump* / GetCurrent* → `ability.call`，`abilityId` 查 `blockly-dsl/reference.md`「指令·多关卡 liteScene」\n   - 当前关分支：优先 `GetCurrentLiteSceneLevelInstruction` 返回值 + `compare` + `control.if`（不要猜关卡名）\n   - ❌ 禁止手写 `sideapi_blockly_compile.data` 嵌套 GetFixed* 包装器（旧路径已废弃）\n   - Jump* 的 `levelFileName` **必须来自 inspect 回读**\n\n5. **输出顺序**\n   - 需要新建关时：`inspect` → `lite_scene_manage(action=\"create\")` →（可选）再 inspect 确认 → 再写运行态跳转\n   - 仅玩法传送已有关：`inspect` → 运行态 Jump* / MatchArea（不要用 EditTime Jump=2）"
+    },
+    "gameData": {
+      "heading": "类型与约束",
+      "constraints": "## 类型与约束\n\n- 开关：`ToggleButton`，不存在 `Switch`。\n- 文本：`SingleLineText`。\n- 数值：`NumberInput`。\n- 大数：`BigNumberInput`，不要降级。\n- `Date` 定义默认值使用 `0`。\n- 游戏数据不支持 `RelativePosition` / `WorldPosition`。\n- `isPushBroadcast=true` 仅用于明确要求跨房间同步的字段，并同时设置 `saveKV=true`。\n- 金币/派对币属于玩家侧内置能力，不创建为游戏级数据。\n\nAI 生成的 Blockly 目前不能读写游戏数据；不要编造 `game_properties` 路径或 GameProperty 指令。可以先建字段，并如实说明运行态接线需用户在编辑器中完成。\n\n示例见 `gameData/examples.md`，完整 settings 字段表见 `gameData/reference.md`。"
+    },
+    "skillPresetEdit": {
+      "heading": "关键约束",
+      "constraints": "## 关键约束\n\n1. `skill_create` 返回新 `skillId` 后，后续工具必须使用该真实 ID；禁止猜 UUID。\n2. `skill_update.field` 只能使用 Tool Schema 的枚举值；事件列表不属于元数据，必须用 Blockly 工具。\n3. Timeline Task 先通过 `inspectAbilityTaskCatalog` 证明当前编辑器已注册，再调用 `skill_timeline_*`。\n4. 动画、特效、音频和本地投掷物字段必须是真实资源 ID；缺资源时停止该 Clip，不写空值。\n5. 所有修改完成后调用 `skill_save`，再用 `inspectSkillDetail(includeTimeline=true)` 核对基本信息、总时长、轨道和关键 Task 字段。\n6. 删除技能是破坏性操作，只有用户明确要求且目标 ID 唯一时才调用 `skill_delete`。\n7. Contract 校验失败时修正 Honey Contract 源或报告能力缺口，禁止另建静态目录或猜字段。"
+    },
+    "abilityTimelineEdit": {
+      "heading": "V2 运行约束",
+      "constraints": "## V2 运行约束\n\n- 默认仅返回技能编辑器可见 Task；`includeHidden=true` 只用于诊断，不代表隐藏 Task 可安全用于生产。\n- 本文件仍负责常用 Task 的字段语义与约束；动态目录负责证明“当前客户端确实注册了该类”，两者必须同时满足。\n- 资源型 Task 在 `skill_timeline_add` 首次写入前，必须完成对应 `search_asset` 或本地预设 inspect。\n- `PlayAnimationAbilityTask` / `PlayWrapAnimationAbilityTask`：必须先搜索 `kind=\"action\"`，且 `_animationId` 非空。\n- `PlayEffectAbilityTask`：必须先搜索 `kind=\"effect\"`，且 `_effectId` 非空。\n- `PlaySoundAbilityTask`：必须先搜索 `kind=\"audio\"`，且 `_soundId` 非空。\n- `ProjectileAbilityTaskNew`：`value` 必须是 inspect 得到的真实本地投掷物预设 GUID。\n- 上述资源字段不得使用空字符串、资源名称、示例占位符或其他资源类型的 GUID。\n- 搜索返回 `found=false` 时不得创建空资源 Clip；最终状态必须标记为“部分成功”。\n- readback 只有在资源字段非空且与选中候选 GUID 一致时才算该资源 Clip 完成；仅有 `taskType` 不算完成。\n- 所有 schema 标注为 number 的字段必须使用 JSON number；字符串数字（如 `\"3\"`）不合法。\n- 动作候选必须按技能语义比较全部候选，不得无条件取第一项：\n- 只有 `recovery` 的结束动作、只有 `startup` 的开始动作不得单独冒充完整动作；\n- `damageTiming=continuous` 的循环动作只用于持续引导/喷射等匹配需求；\n- 最终报告必须说明所选动作的匹配依据；若淘汰了名称高度相关但阶段不完整的候选，应说明阶段缺失。\n- 帧号换算为 Timeline 秒数必须有可靠 `frameRate`；没有 FPS 时禁止默认 30 FPS，应先 inspect，\n- 缺少明确前后摇元数据时只能做语义推断并明确说明，禁止声称资源具有未经查询证实的精确关键帧。\n- `skill_timeline_set_duration.duration` 必须覆盖动作收势和所有资源 Clip 的最大结束时间。\n- 仅按用户需求添加，禁止为所有技能主动锁移动或锁转向。\n- 创建 Clip 时 `taskFields={}`，禁止把普通 JSON 直接覆盖到 `onTaskActivated`。\n- Clip 落地并重新 inspect 后，使用 `sideapi_blockly_compile` 编辑：\n- 创建 Clip 时 `taskFields={}`。\n- 资产字段只允许使用 inspect 或 `search_asset` 返回的真实 ID。\n- 不得把示例文字、资源名称或占位符写入 GUID 字段。"
+    }
+  },
+  "editTimeMap": {
+    "WeaponAssetCommandEventDataInfo": "weapon",
+    "RemoveAbilityCommandEventDataInfo": "basic",
+    "FunctionCallCommandEventDataInfo": "basic",
+    "CommandEventProperty_CopyObject": "basicOperationEdit",
+    "BGMEditCommandEventDataInfo": "bgmEdit",
+    "BuffEditCommandEventDataInfo": "buffEdit",
+    "GetBuffFromBuffList": "buffEdit",
+    "AddTrackPointInfo": "cameraMovement",
+    "AICustomPropertyCommandEventDataInfo": "customData",
+    "AICustomEventTemplateCommandEventDataInfo": "customData",
+    "AICustomEventPropertyCommandEventDataInfo": "customData",
+    "AICustomEventParamaterCommandEventDataInfo": "customData",
+    "AddEffectSlotInfo": "effect",
+    "InstructionInfo": "interactive",
+    "EnterPreviewModeWithPresetAssetDataInfo": "prefabNodeEdit",
+    "LeavePresetPreviewModeDataInfo": "prefabNodeEdit",
+    "CameraGetForwardInstruction": "playerstart",
+    "OpenPresetNodeEditSessionDataInfo": "prefabNodeEdit",
+    "CommitPresetNodeEditSessionDataInfo": "prefabNodeEdit",
+    "ClosePresetNodeEditSessionDataInfo": "prefabNodeEdit",
+    "SaveLocalizedPrefabCopyDataInfo": "prefabNodeEdit",
+    "ApplyPresetToSceneDataInfo": "prefabNodeEdit",
+    "SaveEntityAsPresetDataInfo": "prefabNodeEdit",
+    "AddPointLightInfo": "pointLightMgr",
+    "AddSkillSlotInfo": "skillMgr",
+    "AddObjectSpawnerSlotCommandEventDataInfo": "spawner",
+    "AddWorldUISlotInfo": "worldUI",
+    "UICanvasCommandEventDataInfo": "ui",
+    "SetGlobalUIPrefabInstruction": "ui",
+    "SetUIPrefabInstruction": "ui",
+    "CreateUICanvasCommandEventDataInfo": "ui",
+    "CreateUIWidgetCommandEventDataInfo": "ui",
+    "UICommandEventDataInfo": "ui"
+  },
+  "abilityDomainMap": {
+    "BaseMoveAbility": "basemove",
+    "BasicAbility": "basic",
+    "CharacterAbility": "character",
+    "CustomAbility": "customData",
+    "DamageAbility": "damage",
+    "EffectAbility": "effect",
+    "HotWeaponItemAbility": "weapon",
+    "Interactive": "interactive",
+    "LevelAbility": "level",
+    "MeleeWeaponItemAbility": "weapon",
+    "ObjectSpawnerAbility": "spawner",
+    "PointLightMgrAbility": "pointLightMgr",
+    "SkillMgrAbility": "skillMgr",
+    "ItemAbility": "item",
+    "TrackAbilty": "cameraMovement",
+    "WaterVolumeAbility": "water",
+    "WeaponSlotAbility": "weapon",
+    "customModelAbility": "custommodel",
+    "health": "combat",
+    "model": "model",
+    "playerStart": "playerstart",
+    "preciseEdit": "preciseEdit",
+    "touchDetector": "touchDetector",
+    "worldUIV2": "worldUI"
+  },
+  "pathRoutedInstructions": {
+    "AddAbilityCommandEventDataInfo": {
+      "field": "abilityName",
+      "parse": "direct"
+    },
+    "PendantEffectEditCommandEventDataInfo": {
+      "field": "path",
+      "parse": "first_segment"
+    },
+    "PropertyCommandEventDataInfo": {
+      "field": "path",
+      "parse": "first_segment"
+    },
+    "UIWidgetCommandEventDataInfo": {
+      "field": "abilityName",
+      "parse": "direct"
+    }
+  },
+  "removedCommandRedirects": {
+    "ConditionBoolInstruction": [
+      "blockly-dsl"
+    ],
+    "ConditionEntityInstruction": [
+      "blockly-dsl"
+    ],
+    "ConditionEntityTagInstruction": [
+      "blockly-dsl"
+    ],
+    "ConditionIfInventoryHasItemInstruction_LibraryAndScene": [
+      "blockly-dsl"
+    ],
+    "ConditionNumberInstruction": [
+      "blockly-dsl"
+    ],
+    "ConditionPlayerInstruction": [
+      "blockly-dsl"
+    ],
+    "ConditionStringInstruction": [
+      "blockly-dsl"
+    ],
+    "BroadcastCustomEventInstruction": [
+      "blockly-dsl",
+      "customData"
+    ],
+    "UserPropertyInstruction": [
+      "blockly-dsl",
+      "userData"
+    ],
+    "EntityPropertyInstruction": [
+      "blockly-dsl"
+    ],
+    "HideInstruction_V2": [
+      "blockly-dsl",
+      "basic"
+    ],
+    "ShowInstruction": [
+      "blockly-dsl",
+      "basic"
+    ],
+    "SetCustomPropInstruction": [
+      "blockly-dsl",
+      "customData"
+    ],
+    "AddPresetInventoryInstruction": [
+      "blockly-dsl",
+      "shop"
+    ],
+    "BlocklyInstruction": [
+      "blockly-dsl"
+    ],
+    "NewTimerInstruction": [
+      "blockly-dsl"
+    ],
+    "TransformInstruction_NewDuration": [
+      "blockly-dsl",
+      "basemove"
+    ],
+    "CloseLeaderboardInstruction": [
+      "blockly-dsl",
+      "userData"
+    ],
+    "OpenLeaderboardInstruction": [
+      "blockly-dsl",
+      "userData"
+    ],
+    "useInventoryItemInstruction_LibraryAndScene": [
+      "blockly-dsl",
+      "shop"
+    ],
+    "GetStringFromCustomConfig": [
+      "blockly-dsl",
+      "gameConfig"
+    ],
+    "GetAssetFromCustomConfig": [
+      "blockly-dsl",
+      "gameConfig"
+    ],
+    "GetColorFromCustomConfig": [
+      "blockly-dsl",
+      "gameConfig"
+    ]
+  },
+  "abilityArgSpec": {
+    "instruction.__80001/__80002/ActivateAbilityInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "target",
+        "ability"
+      ]
+    },
+    "instruction.__80090/__80143/AddCurrencyInstruction_V2": {
+      "expectedArgs": 5,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "currencyKey",
+        "arg3",
+        "count",
+        "mathType",
+        "showPopup"
+      ]
+    },
+    "instruction.__80079/__80567/AddExpInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "target"
+      ]
+    },
+    "instruction.__80079/__80567/AddLevelInstruction": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80079/__80280/AddMovementInstruction_New": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "direction",
+        "duration"
+      ]
+    },
+    "instruction.__80059/__80297/AddRelativeFacingMovementInstruction": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "direction",
+        "distance",
+        "duration",
+        "basedOnScreen"
+      ]
+    },
+    "instruction.__80001/__80012/ApplyBuffInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "buffFromBuffList",
+        "source"
+      ]
+    },
+    "instruction.__80001/__80015/ApplyDamageInstruction": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "damage",
+        "criticalChance",
+        "criticalMultiplier",
+        "source"
+      ]
+    },
+    "instruction.__80001/__80012/ApplyKnockBackInstruction_m2cm": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "knockBackMag",
+        "knockBackTime",
+        "knockBackDirection",
+        "source"
+      ]
+    },
+    "instruction.__80024/__80025/ArchiveInstruction": {
+      "expectedArgs": 5,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "target",
+        "positionOffset",
+        "rotationOffsetZ",
+        "persistent",
+        "isLocal"
+      ]
+    },
+    "instruction.__80028/CameraAngleLimitInstructionNew": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "verticalDirection",
+        "verticalAngle",
+        "horizontalDirection",
+        "horizontalAngle"
+      ]
+    },
+    "instruction.__80028/CameraFixedElevationInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "bEnabled"
+      ]
+    },
+    "instruction.__80028/CameraFovInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "fov"
+      ]
+    },
+    "instruction.__80028/CameraSpringArmLengthInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "length"
+      ]
+    },
+    "instruction.__80028/CameraSpringArmPositionInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "position"
+      ]
+    },
+    "instruction.__80028/CameraSpringArmRotationInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "direction"
+      ]
+    },
+    "instruction.__80028/CameraSwitchInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "cameraType",
+        "useControllerRotation"
+      ]
+    },
+    "instruction.__80001/__80002/CancelAbilityInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "target",
+        "ability"
+      ]
+    },
+    "instruction.__80079/__80063/ChangeRole": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "extendsFaction",
+        "roleId",
+        "force"
+      ]
+    },
+    "instruction.__80079/__80280/ChangeStateInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "state"
+      ]
+    },
+    "instruction.__80079/__80280/CharPatrolInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "radius",
+        "interval"
+      ]
+    },
+    "instruction.__80079/__80280/CharTrackingInstruction": {
+      "expectedArgs": 6,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "enemyRadius",
+        "invalidRadius",
+        "finishRadius",
+        "partrolEnabled",
+        "rangeRadius",
+        "delayTime"
+      ]
+    },
+    "instruction.__80079/__80280/CharacterFollowInstruction_m2cm": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "target",
+        "radius"
+      ]
+    },
+    "instruction.__80079/__80280/CharacterLookAtInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "target"
+      ]
+    },
+    "instruction.__80079/__80280/CharacterMoveToInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "target"
+      ]
+    },
+    "instruction.__80079/__80280/CharacterPauseOrResumeInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "bPause"
+      ]
+    },
+    "instruction.__80090/__80143/CloseInventoryInstruction": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80090/__80091/CloseShopInstruction": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80074/__5100675/ConversationInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "output",
+        "btnPlayerEntity",
+        "btnAnotherEntity"
+      ]
+    },
+    "instruction.__80074/__80075/DebugLog": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "output"
+      ]
+    },
+    "instruction.__80059/__80059/DestroyEntity": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80079/__80063/EnableJoyStickInputInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "value"
+      ]
+    },
+    "instruction.__80024/__559/EnvironmentInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "uuid"
+      ]
+    },
+    "instruction.__80024/__529/FilterInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "filterId",
+        "arg2"
+      ]
+    },
+    "instruction.__80090/__80143/FixInventoryCapacityInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "count",
+        "mathType"
+      ]
+    },
+    "instruction.__80001/__80002/GiveAbilityInstruction": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "target",
+        "ability",
+        "activateAtOnce",
+        "uiSlotIndex"
+      ]
+    },
+    "instruction.__80059/__80297/ImpactInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "direction",
+        "size",
+        "ignorMass"
+      ]
+    },
+    "instruction.__80001/__80012/InvincibleEntity": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "seconds"
+      ]
+    },
+    "instruction.__80079/__80280/JumpInstruction": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80079/__80567/KillEntity": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80079/__80080/LeaveInteractionCurrentAnimation": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80059/__80297/LookAtInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "target"
+      ]
+    },
+    "instruction.__80079/__80139/ModifyAttributeInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "modifyAttribute",
+        "value"
+      ]
+    },
+    "instruction.__80059/__80297/ObjFollowInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "target",
+        "speed",
+        "radius"
+      ]
+    },
+    "instruction.__80059/__80297/ObjPatrolInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "radius",
+        "speed",
+        "interval"
+      ]
+    },
+    "instruction.__80059/__80297/ObjTrackingInstruction": {
+      "expectedArgs": 7,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "enemyRadius",
+        "invalidRadius",
+        "finishRadius",
+        "speed",
+        "partrolEnabled",
+        "rangeRadius",
+        "delayTime"
+      ]
+    },
+    "instruction.__80090/__80162/OpenAvatorShopInstruction": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80090/__80143/OpenInventoryInstruction": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80024/__80025/OpenOCControlPanelInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80090/__80091/OpenShopInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "shopDataGuid"
+      ]
+    },
+    "instruction.__80079/__80139/OverrideAttributeInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "modifyAttribute",
+        "value"
+      ]
+    },
+    "instruction.__80079/__80080/OverrideStanceInstruction": {
+      "expectedArgs": 12,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "Ground_Stand_Idle",
+        "Ground_Stand_Idle_Speed",
+        "Ground_Stand_Move",
+        "Ground_Stand_Move_Speed",
+        "Flying_Idle",
+        "Flying_Idle_Speed",
+        "Flying_HorizontalMove",
+        "Flying_HorizontalMove_Speed",
+        "Swimming_Free_Idle",
+        "Swimming_Free_Idle_Speed",
+        "Swimming_Free_Move",
+        "Swimming_Free_Move_Speed"
+      ]
+    },
+    "instruction.__80090/__80091/PayInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "amount",
+        "onPaySuccess",
+        "onPayFailed"
+      ]
+    },
+    "instruction.__80055/__80106/Play2DSoundInstruction": {
+      "expectedArgs": 6,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "_soundId",
+        "_volume",
+        "_loopTime",
+        "_speedTime",
+        "_playInClient",
+        "_entity"
+      ]
+    },
+    "instruction.__80079/__80080/PlayAnimationInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "animationId",
+        "loopCount",
+        "_playAnimationType"
+      ]
+    },
+    "instruction.__80055/__80056/PlayBGMInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "entity",
+        "_soundId",
+        "_volume"
+      ]
+    },
+    "instruction.__80028/PlayCameraMovementInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "player",
+        "entity"
+      ]
+    },
+    "instruction.__80059/__687/PlayEffectInstruction": {
+      "expectedArgs": 8,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "_effectId",
+        "_duration",
+        "_worldPosition",
+        "_rotation",
+        "_scale",
+        "_transparency",
+        "_arg_color",
+        "_arg_color01"
+      ]
+    },
+    "instruction.__80059/__687/PlayEffectOnGameObjectInstruction": {
+      "minArgs": 6,
+      "maxArgs": 9,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "_entity",
+        "slotType",
+        "_effectId",
+        "_duration",
+        "_worldPosition",
+        "_rotation",
+        "_scale",
+        "_transparency",
+        "_arg_color",
+        "_arg_color01"
+      ]
+    },
+    "instruction.__80079/__80080/PlayInteractionAnimationInstruction": {
+      "expectedArgs": 6,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "animationId",
+        "slotType",
+        "arg4",
+        "_relativeTransform",
+        "_slotRelativeTransform",
+        "_leaveInteractionType"
+      ]
+    },
+    "instruction.__80055/__80106/PlaySpatialSoundInstruction_m2cm": {
+      "expectedArgs": 9,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "_soundId",
+        "_position",
+        "_volume",
+        "_raidus",
+        "_falloffDistance",
+        "_loopTime",
+        "_speedTime",
+        "_playInClient",
+        "_entity"
+      ]
+    },
+    "instruction.__80001/__80002/RemoveAbilityInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "target",
+        "ability"
+      ]
+    },
+    "instruction.__80001/__80012/RemoveBuffInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "buffFromBuffList"
+      ]
+    },
+    "instruction.__80079/__80567/RespawnEntity": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "rebornPolicy"
+      ]
+    },
+    "instruction.__80074/__81212/ScreenUICanvasVisibleInstruction": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "canvasGuid",
+        "show",
+        "bUseZOrder",
+        "zOrder"
+      ]
+    },
+    "instruction.__80074/__81212/ScreenUISetImageInstruction": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "canvasGuid",
+        "widgetGuid",
+        "imageTransitionType",
+        "imageId"
+      ]
+    },
+    "instruction.__80074/__81212/ScreenUISetTextInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "canvasGuid",
+        "widgetGuid",
+        "text"
+      ]
+    },
+    "instruction.__80074/__81212/ScreenUITransparencyAnimationInstruction": {
+      "expectedArgs": 5,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "canvasGuid",
+        "widgetGuid",
+        "startTransparency",
+        "endTransparency",
+        "animationTime"
+      ]
+    },
+    "instruction.__80074/__81212/ScreenUIWidgetVisibleInstruction": {
+      "expectedArgs": 6,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "canvasGuid",
+        "widgetGuid",
+        "show",
+        "bAutoShowCanvasWhenWidgetShow",
+        "bUseZOrder",
+        "zOrder"
+      ]
+    },
+    "instruction.__80090/__80143/SetInventoryCapacityInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "count"
+      ]
+    },
+    "instruction.__80090/__80143/SetInventoryCurrencyInstruction_V2": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "currencyKey",
+        "count",
+        "showPopup"
+      ]
+    },
+    "instruction.__80059/__1520110/SetModelMaterialImageInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "slotIndex",
+        "textureId"
+      ]
+    },
+    "instruction.__80074/__80075/ShakeInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "shakType"
+      ]
+    },
+    "instruction.__80090/__80091/ShopInstruction_BuyShopItem": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "shopDataGuid",
+        "shopItemDataGuid",
+        "shopPrice",
+        "shopCount"
+      ]
+    },
+    "instruction.__80090/__80091/ShopInstruction_SellShopItem": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "shopDataGuid",
+        "shopItemDataGuid",
+        "shopPrice",
+        "shopCount"
+      ]
+    },
+    "instruction.__80059/__1520110/SpawnAttachmentV3": {
+      "expectedArgs": 5,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "ownerEntity",
+        "_assets",
+        "_slotType",
+        "_offset",
+        "_rotation",
+        "_scale"
+      ]
+    },
+    "instruction.__80059/__80059/SpawnEntityInstruction": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "_assets",
+        "_position",
+        "_rotation",
+        "_scale"
+      ]
+    },
+    "instruction.__80055/__80056/StopBGMInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80028/StopCameraMovementInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "player",
+        "durationTime"
+      ]
+    },
+    "instruction.__80079/__80080/StopCurrentAnimation": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80059/__80297/StopTransformInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "transformType"
+      ]
+    },
+    "instruction.__80074/__80075/TipsInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "_entity",
+        "output"
+      ]
+    },
+    "instruction.__80074/__80164/UIBindPlayerAvatarInstruction": {
+      "expectedArgs": 6,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "avatarTargetEntity",
+        "canvasGuid",
+        "widgetGuid",
+        "operateUIType",
+        "worldUIEntity",
+        "bToAllClient"
+      ]
+    },
+    "instruction.__80126/WaitForTime": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "seconds"
+      ]
+    },
+    "instruction.__80074/__80750/WorldUICanvasVisibleInstruction": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "canvasGuid",
+        "show",
+        "worldUIEntity",
+        "bToAllClient"
+      ]
+    },
+    "instruction.__80074/__80750/WorldUISetImageInstruction": {
+      "expectedArgs": 6,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "canvasGuid",
+        "widgetGuid",
+        "imageTransitionType",
+        "imageId",
+        "worldUIEntity",
+        "bToAllClient"
+      ]
+    },
+    "instruction.__80074/__80750/WorldUISetTextInstruction": {
+      "expectedArgs": 5,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "canvasGuid",
+        "widgetGuid",
+        "text",
+        "worldUIEntity",
+        "bToAllClient"
+      ]
+    },
+    "instruction.__80074/__80750/WorldUITransparencyAnimationInstruction": {
+      "expectedArgs": 7,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "canvasGuid",
+        "widgetGuid",
+        "startTransparency",
+        "endTransparency",
+        "animationTime",
+        "worldUIEntity",
+        "bToAllClient"
+      ]
+    },
+    "instruction.__80074/__80750/WorldUIWidgetVisibleInstruction": {
+      "expectedArgs": 8,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "canvasGuid",
+        "widgetGuid",
+        "show",
+        "bAutoShowCanvasWhenWidgetShow",
+        "worldUIEntity",
+        "bToAllClient",
+        "bUseZOrder",
+        "zOrder"
+      ]
+    },
+    "instruction.__80090/__80143/emptyInventoryInstruction": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80001/__80131/switchWeaponInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "_entity",
+        "_item"
+      ]
+    },
+    "instruction.__80028/CameraGetForwardInstruction": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__5210330/GetDateFromNumberInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "seconds"
+      ]
+    },
+    "instruction.__5210330/GetCurrentDateInstruction": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": []
+    },
+    "instruction.__80119/__80120/GetEntityByUserId": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "string"
+      ]
+    },
+    "instruction.__80119/__80120/GetPlayers": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": []
+    },
+    "instruction.__80119/__80120/GetIsPlayer": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "entity"
+      ]
+    },
+    "instruction.__80119/__80120/AF_playerStart_getUserId": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": []
+    },
+    "instruction.__80119/__80133/AF_BasicAbility_broadcastCustomEvent": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "arg1"
+      ]
+    },
+    "instruction.__80059/__80059/DistanceBetweenEntitiesInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "fromTarget",
+        "toTarget"
+      ]
+    },
+    "instruction.__80059/__80059/GetEntityChildrenInstruction": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "targetEntity"
+      ]
+    },
+    "instruction.__80059/__80059/PositionAlongEntityDirectionInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "target",
+        "relativeDirection",
+        "distance"
+      ]
+    },
+    "instruction.__80059/__1520110/DestroyPendantEntity": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "slotType",
+        "index"
+      ]
+    },
+    "instruction.__80059/__1520110/AF_effectObj_getAllPendantsEntityCountHelper": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": []
+    },
+    "instruction.__80059/__1520110/AF_effectObj_getAllPendantsEntityHelper": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": []
+    },
+    "instruction.__80059/__1520110/AF_effectObj_getPendantsCountHelper": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "string"
+      ]
+    },
+    "instruction.__80059/__1520110/AF_effectObj_getPendantsEntityHelper": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "string"
+      ]
+    },
+    "instruction.__80059/__80059/GetMeleeWeaponEntityFromSpecEntity": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "_entity"
+      ]
+    },
+    "instruction.__80059/__80059/GetHotWeaponEntityFromSpecEntity": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "_entity"
+      ]
+    },
+    "instruction.__80079/__80567/AF_health_addHp": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "number"
+      ]
+    },
+    "instruction.__80079/__80567/AF_health_removeHp": {
+      "expectedArgs": 1,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "number"
+      ]
+    },
+    "instruction.__80028/PositionAlongCameraDirectionInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": true,
+      "rawParams": [
+        "relativeDirection",
+        "distance"
+      ]
+    },
+    "instruction.__80059/__80297/ContinuousMoveInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "direction",
+        "isLocal",
+        "speed"
+      ]
+    },
+    "instruction.__80059/__80297/ContinuousRotateInstruction": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "direction",
+        "isLocal",
+        "speed",
+        "Duration"
+      ]
+    },
+    "instruction.__80059/__80297/ContinuousScaleInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "direction",
+        "isLocal",
+        "speed"
+      ]
+    },
+    "instruction.__80059/__80297/MoveInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "target",
+        "duration",
+        "isLocal"
+      ]
+    },
+    "instruction.__80059/__80297/RotateInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "target",
+        "duration",
+        "isLocal"
+      ]
+    },
+    "instruction.__80059/__80297/ScaleInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "targetScale",
+        "duration",
+        "isLocal"
+      ]
+    },
+    "instruction.__80059/__80297/LockMoveAxisInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "lockX",
+        "lockY",
+        "lockZ"
+      ]
+    },
+    "instruction.__80059/__80297/LockRotateAxisInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "lockX",
+        "lockY",
+        "lockZ"
+      ]
+    },
+    "instruction.__80059/__80297/LockScaleAxisInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "lockX",
+        "lockY",
+        "lockZ"
+      ]
+    },
+    "instruction.__80090/__80143/useInventoryItemInstrcution": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity",
+        "howToChooseProp",
+        "itemId",
+        "propInScene"
+      ]
+    },
+    "instruction.__80090/__80143/AF_InventoryAbility_addItemByPresetAssetId": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "string",
+        "number",
+        "boolean"
+      ]
+    },
+    "instruction.__80090/__80143/AF_InventoryAbility_removeItemByPresetAssetIdOnly": {
+      "expectedArgs": 5,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "boolean",
+        "string",
+        "Entity",
+        "number",
+        "boolean"
+      ]
+    },
+    "instruction.__80090/__80143/AF_InventoryAbility_hasPresetAssetItemByAssetId": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "boolean",
+        "string",
+        "Entity"
+      ]
+    },
+    "instruction.__80090/__80143/AF_InventoryAbility_getPresetAssetItemCountByAssetId": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "boolean",
+        "string",
+        "Entity"
+      ]
+    },
+    "instruction.__80090/__80143/AF_InventoryAbility_checkInventoryEmptySlot": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": []
+    },
+    "instruction.__80119/__80120/AF_playerStart_getUserConsumptionAmount": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": []
+    },
+    "instruction.__80074/__81212/ScreenUIGetTextInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "entity:Entity(玩家)",
+        "canvasGuid:string",
+        "widgetGuid:string"
+      ]
+    },
+    "instruction.__80074/__80750/WorldUIGetTextInstructionWithoutPlayer": {
+      "expectedArgs": 4,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "worldUIEntity:Entity",
+        "canvasGuid:string",
+        "widgetGuid:string",
+        "bToAllClient:boolean",
+        "targetEntity:Entity(玩家)"
+      ]
+    },
+    "instruction.__80024/__1482/JumpPlayerToSubLevelInstruction": {
+      "expectedArgs": 3,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "levelFileName",
+        "targetEntity",
+        "bRoomPublic"
+      ]
+    },
+    "instruction.__80024/__1482/JumpAllPlayersToSubLevelInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "levelFileName",
+        "bRoomPublic"
+      ]
+    },
+    "instruction.__80024/__1482/GetCurrentLiteSceneLevelInstruction": {
+      "expectedArgs": 0,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": []
+    },
+    "instruction.__80174/ConditionCurrentLiteSceneLevelInstruction": {
+      "expectedArgs": 2,
+      "variableArgs": false,
+      "ownerIsSystem": false,
+      "rawParams": [
+        "levelFileName",
+        "childInstruction"
+      ]
+    }
+  }
+}

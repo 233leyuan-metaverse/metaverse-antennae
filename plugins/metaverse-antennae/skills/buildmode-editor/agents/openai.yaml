@@ -1,0 +1,14 @@
+interface:
+  display_name: "Buildmode Editor"
+  short_description: "Operate Buildmode safely through SideAPI"
+  default_prompt: "Use $buildmode-editor to inspect the current scene and make a verified editor change."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "sideapi_bridge"
+      description: "Local Buildmode editor SideAPI tools"
+      transport: "stdio"
+
+policy:
+  allow_implicit_invocation: true

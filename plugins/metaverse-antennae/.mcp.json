@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "sideapi_bridge": {
+      "command": ".\\runtime\\buildmode-sideapi-mcp\\buildmode-sideapi-mcp.exe",
+      "args": [],
+      "cwd": ".",
+      "env": {
+        "PYTHONUTF8": "1",
+        "SIDEAPI_CLIENT_URL": "ws://127.0.0.1:19931",
+        "MULTI_PATH_RECALL_URL": "https://pre-api.meta-verse.co/metaverse/image/search/script/multiPathRecall"
+      }
+    }
+  }
+}
