@@ -1,6 +1,6 @@
 {
   "name": "metaverse-antennae",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Inspect and operate the Buildmode editor through the local SideAPI bridge with verified semantic tools, native UI workflows, and custom user-component logic.",
   "author": {
     "name": "Buildmode"
