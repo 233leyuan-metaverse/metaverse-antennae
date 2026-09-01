@@ -1,6 +1,6 @@
 {
   "name": "metaverse-antennae",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Inspect and operate the Metaverse Antennae editor through the local SideAPI bridge with workflow and Blockly guidance.",
   "author": {
     "name": "Metaverse Antennae"
