@@ -23,3 +23,5 @@ A timeout or missing response does not prove failure. Inspect the intended targe
 ## Completion
 
 Report what changed, the real identifiers affected, and the Operation verification that proved the result. Report partial completion or a structured gap when evidence is missing.
+
+For visual acceptance, call `capture` with an explicit useful camera when the current viewport may not contain the target. Use `restore_camera=true` when temporarily reframing. Inspect the returned PNG image content; a successful envelope or screenshot path without readable pixels does not prove that an effect or scene result is visible.
