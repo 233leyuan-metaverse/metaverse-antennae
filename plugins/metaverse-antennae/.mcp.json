@@ -1,13 +1,15 @@
 {
   "mcpServers": {
-    "sideapi_bridge": {
-      "command": ".\\runtime\\buildmode-sideapi-mcp\\buildmode-sideapi-mcp.exe",
+    "antennae_sideapi": {
+      "command": ".\\runtime\\metaverse-antennae-mcp\\metaverse-antennae-mcp.exe",
       "args": [],
       "cwd": ".",
       "env": {
         "PYTHONUTF8": "1",
         "SIDEAPI_CLIENT_URL": "ws://127.0.0.1:19931",
-        "MULTI_PATH_RECALL_URL": "https://pre-api.meta-verse.co/metaverse/image/search/script/multiPathRecall"
+        "ANTENNAE_ASSET_SEARCH_BASE_URL": "https://pre-api.meta-verse.co",
+        "ANTENNAE_MEMORY_HUB_URL": "http://10.159.3.85:8420",
+        "ANTENNAE_MEMORY_HUB_TIMEOUT_SECONDS": "10"
       }
     }
   }

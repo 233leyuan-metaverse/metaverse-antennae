@@ -1,25 +1,25 @@
 {
   "name": "metaverse-antennae",
-  "version": "0.2.1",
-  "description": "Inspect and operate the Buildmode editor through the local SideAPI bridge with verified semantic tools, native UI workflows, and custom user-component logic.",
+  "version": "0.3.0",
+  "description": "Inspect and operate the Metaverse Antennae editor through the local SideAPI bridge with workflow and Blockly guidance.",
   "author": {
-    "name": "Buildmode"
+    "name": "Metaverse Antennae"
   },
   "skills": "./skills/",
   "interface": {
-    "displayName": "Buildmode Editor",
-    "shortDescription": "Build and verify Buildmode editor content with SideAPI.",
-    "longDescription": "Connects Codex to the local Buildmode editor, exposes semantic SideAPI tools, and initializes project-owned CLI skills and API declarations with explicit version checks.",
-    "developerName": "Buildmode",
+    "displayName": "Metaverse Antennae Editor",
+    "shortDescription": "Build and verify Metaverse Antennae editor content with SideAPI.",
+    "longDescription": "Connects Codex to the local Metaverse Antennae editor, exposes semantic SideAPI tools, and supplies on-demand workflow, mechanism, resource, and Blockly guidance.",
+    "developerName": "Metaverse Antennae",
     "category": "DeveloperTools",
     "capabilities": [
       "Interactive",
       "Write"
     ],
     "defaultPrompt": [
-      "Inspect the current Buildmode scene without changing it.",
+      "Inspect the current Metaverse Antennae scene without changing it.",
       "Build this gameplay feature and verify every editor write.",
-      "Implement the required runtime logic with a verified custom user component."
+      "Create the required Blockly logic using authoritative examples."
     ]
   },
   "mcpServers": "./.mcp.json"
