@@ -12,9 +12,9 @@ Use `inspect(projection="scene_object_detail", game_object_ids=[...])` for an ex
 
 Use `inspect(projection="ui_detail", canvas_guids=[...], widget_guids=[...])` for properties, bindings, events, and ownership. Use `inspect(projection="property_values", queries=[...])` only for a narrowly specified diagnostic.
 
-## Blockly
+## User Components
 
-Use `catalog_invoke(toolset="blockly", tool="read_workspace", ...)` for an exact workspace and `inspect(projection="instruction_lists", instruction_targets=[...])` for the relevant event binding. `blockly_compile` already verifies its saved source and exact binding on success.
+Blockly execution and workspace reads are unavailable through the current MCP policy. For runtime logic, use `inspect(projection="user_component_api")` to establish the bindings actually injected into User Components. Establish UGC UI, Buff, Skill, Ability, and other event/API signatures by reading the relevant project-installed `.d.ts` through `code.search_project_source` and `code.read_project_source`. Establish component lifecycle and custom events from the component declaration or read-only template. Lint the generated code, then rely on `code.user_component.apply` or `code.user_component.write_body` hot-reload plus exact persisted readback. Use `code.read_component` for diagnosis or uncertain-result reconciliation.
 
 ## Ambiguous transport results
 

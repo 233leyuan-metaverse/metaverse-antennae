@@ -1,7 +1,7 @@
 {
   "name": "metaverse-antennae",
-  "version": "0.4.3",
-  "description": "Inspect and operate the Metaverse Antennae editor through the local SideAPI bridge with workflow and Blockly guidance.",
+  "version": "0.4.4",
+  "description": "Inspect and operate the Metaverse Antennae editor through the local SideAPI bridge with workflow and User Component guidance.",
   "author": {
     "name": "Metaverse Antennae"
   },
@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Metaverse Antennae Editor",
     "shortDescription": "Build and verify Metaverse Antennae editor content with SideAPI.",
-    "longDescription": "Connects Codex to the local Metaverse Antennae editor, exposes semantic SideAPI tools, and supplies on-demand workflow, mechanism, resource, and Blockly guidance.",
+    "longDescription": "Connects Codex to the local Metaverse Antennae editor, exposes semantic SideAPI tools, and supplies on-demand workflow, mechanism, resource, and User Component guidance.",
     "developerName": "Metaverse Antennae",
     "category": "DeveloperTools",
     "capabilities": [
@@ -19,7 +19,7 @@
     "defaultPrompt": [
       "Inspect the current Metaverse Antennae scene without changing it.",
       "Build this gameplay feature and verify every editor write.",
-      "Create the required Blockly logic using authoritative examples."
+      "Implement runtime logic with User Components using authoritative project declarations."
     ]
   },
   "mcpServers": "./.mcp.json"

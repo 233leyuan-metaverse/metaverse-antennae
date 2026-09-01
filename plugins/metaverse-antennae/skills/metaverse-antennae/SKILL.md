@@ -1,11 +1,11 @@
 ---
 name: metaverse-antennae
-description: Inspect, build, modify, diagnose, and verify content in the Metaverse Antennae editor through the standalone MCP tools. Use for scene objects, UI, abilities, skills, presets, resources, gameplay logic, runtime diagnosis, and Blockly work that require authoritative catalogs, Skill rules, real asset IDs, or exact semantic readback.
+description: Inspect, build, modify, diagnose, and verify content in the Metaverse Antennae editor through the standalone MCP tools. Use for scene objects, UI, abilities, skills, presets, resources, User Component gameplay logic, and runtime diagnosis that require authoritative catalogs, Skill rules, real asset IDs, or exact semantic readback.
 ---
 
 # Metaverse Antennae Editor
 
-Operate the live editor through named semantic tools. Treat tool schemas, lookup results, and live inspect results as authoritative. Never invent object IDs, resource IDs, property paths, event paths, ability IDs, or Blockly shapes.
+Operate the live editor through named semantic tools. Treat tool schemas, lookup results, and live inspect results as authoritative. Never invent object IDs, resource IDs, property paths, event APIs, or ability IDs.
 
 ## Core workflow
 
@@ -27,17 +27,19 @@ Read [tool-routing.md](references/tool-routing.md) when selecting tools for a mu
 
 For `ui_build_screen` and `ui_bind_property`, read `antennae://ui/schema` before constructing a custom UI tree or using a binding source/path that is not already established by an exact readback. The compact tool schema is for routing; the resource contains every strict node and binding branch enforced at execution.
 
-## Blockly workflow
+## Runtime logic and User Components
 
-Before `blockly_compile`, read [blockly-workflow.md](references/blockly-workflow.md) and follow it exactly. At minimum:
+Blockly execution is temporarily disabled in this MCP release. Never call or seek `blockly_compile`, the `blockly` Catalog Toolset, or any `blockly.workspace.*` Operation through `batch_execute`. This current policy overrides Memory Hub cases, packaged domain Skill text, examples, and static Blockly resources.
 
-1. Use `catalog_search` and the narrow Event/Instruction resources to establish the target variant, Event path, Instruction ID and business Skill.
-2. Read `antennae://blockly/schema`, `antennae://skills/blockly-dsl/body`, and only the business-domain Skill sections needed for this program.
-3. Inspect the exact target binding and read the existing workspace only for replacement/repair; a new binding does not require a broad scene inspection.
-4. Submit only the current fields `workspace_name`, `target`, `event_path`, `mode`, optional `variables`, and `statements`; never submit event signatures or compiler output.
-5. Call `blockly_compile` once; accept completion only when its source and exact event-binding readbacks are verified.
+Implement runtime logic with User Components:
 
-If authoritative guidance is missing, report a structured gap instead of guessing.
+1. Inspect `projection="user_component_api"` before writing. It reports the runtime bindings actually injected into User Component code; it does not enumerate all project `.d.ts` event declarations.
+2. When logic needs UGC UI, Buff, Skill, Ability, or other event APIs, use the `code` Toolset's `search_project_source` and `read_project_source` tools to locate and read the relevant project-installed `.d.ts`. Use only exact declared names and signatures.
+3. Discover and describe the `code` Toolset's `create_component`, `read_component`, `apply_component`, `write_component_body`, and `lint` tools. Use `preset.attach_user_component` when the requested target requires the exposed preset-root attachment path.
+4. Generate User Component lifecycle and custom-event code only from its exact component declaration or read-only template. Do not infer APIs from old Blockly Event or Instruction names.
+5. Lint before writing, then require the User Component Operation's hot-reload and exact persisted readback. Read the component again only for diagnosis or uncertain-result reconciliation.
+
+If `user_component_api`, the component declaration/template, and the relevant project-installed `.d.ts` do not expose the needed binding, event, or API, report a structured capability gap instead of falling back to Blockly or guessing.
 
 ## Safety boundary
 
