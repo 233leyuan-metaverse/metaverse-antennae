@@ -29,17 +29,19 @@ For `ui_build_screen` and `ui_bind_property`, read `antennae://ui/schema` before
 
 ## Runtime logic, Blockly, and User Components
 
-Use the `blockly` Catalog Toolset for bounded Blockly event logic. Discover it with `catalog_search(kinds=["toolset","tool"], toolset="blockly")`, describe the selected tool, and invoke it with `catalog_invoke(toolset="blockly", tool=..., arguments=...)`. There is no top-level `blockly_compile` MCP tool. Use `target.type="skillAsset"` only with the two strict nested AbilityTask lifecycle paths exposed by the Blockly schema. For preset-root event replacement, prefer `preset.replace_event`, which owns hydrate, source/binding replacement, one commit, rollback-before-commit, and rehydrated readback as one Operation; a new workspace replaces prior Blockly bindings but preserves non-Blockly instructions.
+Blockly execution and workspace reads are temporarily disabled through this MCP. Memory, old cases, static Event/Instruction resources, editor capability status, and existing workspaces are advisory migration context only; they never authorize `blockly.workspace.*`, the preset workspace compatibility Operations, Catalog Blockly, or Batch execution. Do not delete existing Blockly data unless the user explicitly requests a separately supported cleanup path.
 
-Use User Components for broader authored runtime systems or when the Blockly Contract does not expose the required behavior:
+Use User Components for authored runtime systems:
+
+Before creating or modifying a User Component, read and follow [user-component-workflow.md](references/user-component-workflow.md). It restores the evidence, design, lifecycle, logging, write, and readback workflow used by the dedicated custom-component Skill. API declarations may be read from the verified current UGC workspace; component mutations and semantic readback use the current MCP tools.
 
 1. Inspect `projection="user_component_api"` before writing. It reports the runtime bindings actually injected into User Component code; it does not enumerate all project `.d.ts` event declarations.
-2. When logic needs UGC UI, Buff, Skill, Ability, or other event APIs, use the `code` Toolset's `search_project_source` and `read_project_source` tools to locate and read the relevant project-installed `.d.ts`. Use only exact declared names and signatures.
+2. Treat `DataFile/userComponent/docs` as the authoritative project-local API root. When the current workspace is the UGC project, search and read its declarations directly through workspace-relative paths so API discovery remains available while the editor is offline. Otherwise use the `code` Toolset's `search_project_source` with that directory, then `read_project_source` for the matched `.d.ts`. Use only exact declared names and signatures. Never guess an absolute project path or read declarations from the MCP package, an installed plugin cache, or a sibling checkout.
 3. Discover and describe the `code` Toolset's `create_component`, `read_component`, `apply_component`, `write_component_body`, and `lint` tools. Use `preset.attach_user_component` when the requested target requires the exposed preset-root attachment path.
 4. Generate User Component lifecycle and custom-event code only from its exact component declaration or read-only template. Do not infer APIs from old Blockly Event or Instruction names.
 5. Lint before writing, then require the User Component Operation's hot-reload and exact persisted readback. Read the component again only for diagnosis or uncertain-result reconciliation.
 
-If neither the strict Blockly Contract nor `user_component_api`, the component declaration/template, and the relevant project-installed `.d.ts` expose the needed binding, event, or API, report a structured capability gap instead of guessing.
+If neither `user_component_api`, the component declaration/template, nor the relevant project-installed `.d.ts` expose the needed binding, event, or API, report a structured capability gap instead of guessing or falling back to Blockly.
 
 ## Safety boundary
 
