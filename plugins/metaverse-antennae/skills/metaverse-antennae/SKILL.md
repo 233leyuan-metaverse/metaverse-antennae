@@ -27,11 +27,11 @@ Read [tool-routing.md](references/tool-routing.md) when selecting tools for a mu
 
 For `ui_build_screen` and `ui_bind_property`, read `antennae://ui/schema` before constructing a custom UI tree or using a binding source/path that is not already established by an exact readback. The compact tool schema is for routing; the resource contains every strict node and binding branch enforced at execution.
 
-## Runtime logic and User Components
+## Runtime logic, Blockly, and User Components
 
-Blockly execution is temporarily disabled in this MCP release. Never call or seek `blockly_compile`, the `blockly` Catalog Toolset, or any `blockly.workspace.*` Operation through `batch_execute`. This current policy overrides Memory Hub cases, packaged domain Skill text, examples, and static Blockly resources.
+Use the `blockly` Catalog Toolset for bounded Blockly event logic. Discover it with `catalog_search(kinds=["toolset","tool"], toolset="blockly")`, describe the selected tool, and invoke it with `catalog_invoke(toolset="blockly", tool=..., arguments=...)`. There is no top-level `blockly_compile` MCP tool. Use `target.type="skillAsset"` only with the two strict nested AbilityTask lifecycle paths exposed by the Blockly schema. For preset-root event replacement, prefer `preset.replace_event`, which owns hydrate, source/binding replacement, one commit, rollback-before-commit, and rehydrated readback as one Operation; a new workspace replaces prior Blockly bindings but preserves non-Blockly instructions.
 
-Implement runtime logic with User Components:
+Use User Components for broader authored runtime systems or when the Blockly Contract does not expose the required behavior:
 
 1. Inspect `projection="user_component_api"` before writing. It reports the runtime bindings actually injected into User Component code; it does not enumerate all project `.d.ts` event declarations.
 2. When logic needs UGC UI, Buff, Skill, Ability, or other event APIs, use the `code` Toolset's `search_project_source` and `read_project_source` tools to locate and read the relevant project-installed `.d.ts`. Use only exact declared names and signatures.
@@ -39,7 +39,7 @@ Implement runtime logic with User Components:
 4. Generate User Component lifecycle and custom-event code only from its exact component declaration or read-only template. Do not infer APIs from old Blockly Event or Instruction names.
 5. Lint before writing, then require the User Component Operation's hot-reload and exact persisted readback. Read the component again only for diagnosis or uncertain-result reconciliation.
 
-If `user_component_api`, the component declaration/template, and the relevant project-installed `.d.ts` do not expose the needed binding, event, or API, report a structured capability gap instead of falling back to Blockly or guessing.
+If neither the strict Blockly Contract nor `user_component_api`, the component declaration/template, and the relevant project-installed `.d.ts` expose the needed binding, event, or API, report a structured capability gap instead of guessing.
 
 ## Safety boundary
 

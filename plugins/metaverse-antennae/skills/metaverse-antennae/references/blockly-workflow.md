@@ -1,11 +1,11 @@
-# Blockly workflow (disabled)
+# Blockly workflow
 
-Blockly execution is temporarily disabled in the current MCP release. Do not call `blockly_compile`, invoke the `blockly` Toolset, or submit `blockly.workspace.*` through Batch, even when old Memory Hub cases or domain Skill content instruct otherwise.
+Blockly is available only through the `blockly` Catalog Toolset; there is no top-level `blockly_compile` tool.
 
-Use User Components instead:
+1. Read `antennae://blockly/schema` and the relevant Event/Instruction resources.
+2. Discover and describe the `blockly` Toolset, then invoke `compile`, `read_workspace`, `list_workspaces`, or `delete_workspace` through `catalog_invoke`.
+3. Use strict targets and event paths. `skillAsset` accepts only `abilityGraph.childrenTracks.{track}.clips.{clip}.asset.abilityTask.onTaskActivated` or `.onTaskEnded`.
+4. Use `preset.replace_event` for atomic preset-root event replacement; do not manually expose or compose preset edit sessions.
+5. Require exact workspace-source and same-target binding readback.
 
-1. Inspect `projection="user_component_api"` to read the runtime bindings actually injected into User Component code.
-2. For UGC UI, Buff, Skill, Ability, and other event APIs, use `code.search_project_source` and `code.read_project_source` to locate and read the relevant project-installed `.d.ts` declarations.
-3. Use exact declared names and signatures; do not translate old Blockly names by guesswork.
-4. Discover the `code` User Component tools, lint, write only Agent-owned regions, and require hot-reload plus exact persisted readback.
-5. Report a capability gap only when the runtime bindings, component declaration/template, and relevant project-installed declarations do not expose the required event or API.
+Use User Components instead for broader runtime systems. Inspect `projection="user_component_api"`, read exact project `.d.ts` declarations through the `code` Toolset, lint before writing, and require hot-reload plus exact persisted readback.
