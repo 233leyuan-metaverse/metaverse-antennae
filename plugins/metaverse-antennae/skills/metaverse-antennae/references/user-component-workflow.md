@@ -6,10 +6,10 @@ Use this workflow when runtime gameplay requires a new or modified User Componen
 
 Read only what the requested behavior needs:
 
-1. Inspect `projection="user_component_api"` for the bindings actually injected into User Component code.
-2. Treat the current project's `DataFile/userComponent/docs` as the authoritative API root. If the current workspace is that UGC project, use local workspace search/read facilities on this relative directory and progressively read only relevant `.d.ts` files. This path remains usable while the editor bridge is offline. If the UGC project is not the current accessible workspace, use `code.search_project_source` with `directory="DataFile/userComponent/docs"` and a narrow `*.d.ts` pattern/query, then use `code.read_project_source` on each relevant match. Do not substitute declarations from the MCP package, an installed plugin cache, a sibling checkout, Memory Hub, or model memory.
-3. Discover existing components with `inspect(projection="user_components")`. Read a candidate with `code.read_component` before deciding to create or replace anything.
-4. Use the component's exact declaration and read-only template for lifecycle hooks and custom events. If the injected bindings, template, and project declarations do not prove a required name, signature, cleanup method, or type, stop that part and report a capability gap.
+1. Treat every `DataFile/userComponent/docs/**/*.data` file in the current project as part of the sole public API contract. Search `DataFile/userComponent/docs/ugc` first with `pattern="*.data"`: read the relevant domain file, then `common.data` and `decorate.data` only as needed. If a UGC signature references `mw.Vector`, `mw.Rotation`, or another `mw.*` symbol, or the task requires an engine-level API, search `DataFile/userComponent/docs/engine` with the same pattern and read only the matching declarations. If the current workspace is that UGC project, use workspace-relative reads; otherwise use `code.search_project_source` and `code.read_project_source`. Do not substitute declarations from the MCP package, an installed plugin cache, a sibling checkout, Memory Hub, or model memory.
+2. Discover existing components with `inspect(projection="user_components")`. Read a candidate with `code.read_component` before deciding to create or replace anything.
+3. Use the component's exact declaration and read-only template for lifecycle hooks and custom events. If the template and UGC declarations do not prove a required name, signature, cleanup method, or type, stop that part and report a capability gap.
+4. Read `dist/game.js` only through the exact bounded project-source escape hatch when declarations are missing or conflict with runtime behavior, or a runtime stack requires bundle context. A bundle-only symbol is never authorization to call an undeclared API.
 
 Never discover the UGC project by scanning unrelated disks or constructing a guessed absolute path. Direct reads are allowed only when `DataFile/userComponent/docs` resolves inside the current verified UGC workspace. Otherwise the editor-connected code Toolset is the authoritative project resolver and bounded read path.
 
@@ -21,12 +21,14 @@ Before writing, identify the state owner, trigger or lifecycle, responsibility, 
 - Split only for a real ownership, lifecycle, reuse, permission, failure-isolation, or enablement boundary.
 - Reuse an existing component when its responsibility already matches.
 - Keep caches, subscription handles, derived values, transient state, and internal counters private. Expose only stable instance configuration with safe defaults.
+- Declare exposed persisted properties through `code.apply_component.properties`. The generated shell owns `api.property({ default: ... })`, `api.serializable`, `api.displayName(...)`, and `api.editorType(...)`; never hand-edit that decorator region.
 - Do not duplicate authoritative state already owned by an official component or system.
 
 Resolve official components and systems only with names and access methods proven by the project declarations. Validate optional and required dependencies before dereferencing them. A dependency failure must log a bounded diagnostic and stop safely; do not invent a replacement API.
 
 ## Lifecycle and cleanup
 
+- Create gameplay entities through declaration-proven `IScene.createEntity(...)` and destroy them with `IEntity.destroy(removeGo?)`. Do not bypass the entity system with raw `mw.GameObject.spawn/destroy` unless the declaration explicitly requires a non-entity engine object.
 - Acquire dependencies, validate configuration, and bind listeners during the declared initialization hook without duplicate initialization.
 - Retain every external callback, subscription, timer, or task handle needed for cleanup.
 - In the declared destroy hook, remove listeners, stop timers/tasks, cancel pending callbacks, and release only resources owned by this component.
