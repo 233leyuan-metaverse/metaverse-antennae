@@ -24,7 +24,7 @@ Before writing, identify the state owner, trigger or lifecycle, responsibility, 
 - Declare exposed persisted properties through `code.apply_component.properties`. The generated shell owns `api.property({ default: ... })`, `api.serializable`, `api.displayName(...)`, and `api.editorType(...)`; never hand-edit that decorator region.
 - Do not duplicate authoritative state already owned by an official component or system.
 
-Resolve official components and systems only with names and access methods proven by the project declarations. Validate optional and required dependencies before dereferencing them. A dependency failure must log a bounded diagnostic and stop safely; do not invent a replacement API.
+Resolve official components only with names and access methods proven by the project declarations. For every scene system declared as `ISubSystem`, read `common.data` to prove `IScene.findSystem(...)`, then acquire it from the current component with `this.entity.scene.findSystem("ExactSystemClassName")`. Never use `api.<System>.ins`, `<System>.ins`, `getInstance()`, or a module/global singleton shortcut, even if `.data` exposes one or `dist/game.js` uses one internally. Validate the returned system before dereferencing it; if the current scene cannot provide it, log a bounded diagnostic and stop safely instead of falling back to a singleton.
 
 ## Lifecycle and cleanup
 
