@@ -1,6 +1,6 @@
 {
   "name": "metaverse-antennae",
-  "version": "0.4.11",
+  "version": "0.4.12",
   "description": "Inspect and operate the Metaverse Antennae editor through the local SideAPI bridge with workflow and User Component guidance.",
   "author": {
     "name": "Metaverse Antennae"
