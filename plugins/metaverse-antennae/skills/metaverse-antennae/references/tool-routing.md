@@ -4,15 +4,15 @@ Use this order for multi-step Metaverse Antennae tasks.
 
 ## Existing-object edits
 
-Use `inspect(projection="scene_overview")` only when the target identity is unknown. Filter with `exact_names` only for discovery. Continue the returned `snapshot_id` and `cursor` until `complete=true` before treating that snapshot as complete. Once a real `game_object_id` is known, call the matching core or Catalog operation directly; never pass a name selector to a mutation. The write performs its own exact semantic readback.
+Use `inspect(projection="scene_overview")` only when the target identity is unknown. Filter with `exact_names` only for discovery. When an Inspect projection's arguments are not already established, describe only that branch with `catalog_describe(kind="operation", item_id="inspect.query", projection="input_only", selectors=[{"field":"projection","value":<projection>}])`; do not read the complete Inspect Schema for one known projection. Continue the returned `snapshot_id` and `cursor` until `complete=true` before treating that snapshot as complete. Once a real `game_object_id` is known, call the matching core or Catalog operation directly; never pass a name selector to a mutation. The write performs its own exact semantic readback.
 
 ## UI work
 
-Discover canvases and widgets with `inspect(projection="ui_tree")` or `inspect(projection="ui_detail", ...)`. Read `antennae://ui/schema` for the exact ScreenSpec tree nodes, binding targets, paths and sources, plus the needed sections from `antennae://skills/ui/{section}` or `antennae://skills/worldUI/{section}`. Then use `ui_build_screen`, `ui_bind_property`, or the world-mount Catalog operation. Use only returned canvas/widget GUIDs.
+Discover canvases and widgets with `inspect(projection="ui_tree")` or `inspect(projection="ui_detail", ...)`. Call `catalog_describe(kind="tool", item_id="build_screen", projection="input_only")` for a screen input and specialize `operation/ui.property.bind` by the known source `kind`; read `antennae://ui/schema` only if the requested custom tree needs definitions or multiple node branches absent from that exact description. Read only the needed sections from `antennae://skills/ui/{section}` or `antennae://skills/worldUI/{section}`. Then use `ui_build_screen`, `ui_bind_property`, or the world-mount Catalog operation. Use only returned canvas/widget GUIDs.
 
 ## Multi-domain gameplay
 
-Identify the domains that own each requested fact, read only the corresponding `antennae://skills/{skill}/index` and `/body` sections, then use `catalog_search` and `catalog_describe` to resolve each exact Tool or Operation. Keep independent actions as independent calls or an explicit `batch_execute`; every write must satisfy its own exact semantic readback.
+Identify the domains that own each requested fact, read only the corresponding needed `antennae://skills/{skill}/index` and `/body` sections, then use `catalog_search` and `catalog_describe` to resolve each exact Tool, Operation, or property. Do not load all declared dependency bodies automatically; load one only when its subflow is requested. For a pending invocation use `projection="input_only"`, plus ordered `selectors` for already-known discriminators such as `projection`, `action`, `kind`, `scope`, or `type`; use `ability_name` for Ability schemas. For a known property path describe that property ID directly; otherwise search within its exact `owner_ability` and request only `id`, `description`, and `valueSchema`. Keep independent actions as independent calls or an explicit `batch_execute`; every write must satisfy its own exact semantic readback.
 
 ## Resources
 
@@ -20,7 +20,7 @@ Search `kind="resourceKind"` for primitive geometry. Use `asset_search` for mode
 
 ## Skills, presets, and data
 
-Use `catalog_search`/`catalog_describe` for skill, preset, data, content, and resource operations. Resolve declared dependencies and real IDs first; execute multi-domain steps in the order specified by the referenced Skill.
+Use `catalog_search`/`catalog_describe` for skill, preset, data, content, and resource operations. Resolve only the dependencies whose documented subflow applies, plus the real IDs needed by the requested operation; execute those steps in the order specified by the referenced Skill.
 
 ## Memory Hub
 
