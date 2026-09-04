@@ -2,6 +2,16 @@
 
 Use this order for multi-step Metaverse Antennae tasks.
 
+## Intent preservation
+
+Do not pre-normalize an open-ended creation, design, assembly, or composition request into one Catalog Operation. First load the responsible domain Skills, decompose the original goal, and use intent-level Authoring Search/Doc to discover a composable public workflow. A Catalog result is only an execution candidate. Select or invoke it first only for a closed, explicit business mutation; after an Authoring coverage gap it may serve as the reviewed fallback candidate.
+
+## Authoring-preferred mutations
+
+Reviewed direct tools plus every executable Catalog or Batch Operation enter one session-scoped gate before their original handler. Initial `catalog_invoke` only captures the Operation and arguments; it never dispatches the Catalog handler. That handler may run only when `authoring_route_fallback` consumes the captured attempt after a proved Authoring gap. The captured handler and its Operation remain only a candidate fallback; they do not redefine or narrow the original request. On `AUTHORING_ROUTE_REQUIRED`, treat `routing.queries` only as optional, non-exhaustive starting hints, never as a required search set, whitelist, complete API list, or capability boundary; the list may be empty. Search from the original intent; any non-empty Authoring Search query may extend the active discovery graph. Read exact returned symbols with `authoring_api_doc`, then follow relevant declarations, parameter types, and dependencies freely. If the composed runtime access and semantics cover the request, execute the smallest bounded body through `authoring_code_execute`. `executed=true` proves only that the body ran, so use the relevant exact semantic readback before claiming the business change.
+
+Use `authoring_route_fallback` only when intent-level discovery returned no results or exact dependency-aware Search/Doc evidence proves a concrete missing operation or semantic. The supplied hints are not mandatory and cannot establish or limit the capability boundary. One top-level Doc is not proof that the dependency closure lacks coverage. The route ID is session-scoped and the captured handler is one-shot. Never fall back after `executed=true`, a timeout, transport uncertainty, or an unresolved partial write; reconcile state instead.
+
 ## Existing-object edits
 
 Use `inspect(projection="scene_overview")` only when the target identity is unknown. Filter with `exact_names` only for discovery. Continue the returned `snapshot_id` and `cursor` until `complete=true` before treating that snapshot as complete. Once a real `game_object_id` is known, call the matching core or Catalog operation directly; never pass a name selector to a mutation. The write performs its own exact semantic readback.
