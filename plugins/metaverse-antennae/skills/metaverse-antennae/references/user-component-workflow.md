@@ -24,7 +24,7 @@ Before writing, identify the state owner, trigger or lifecycle, responsibility, 
 - Declare exposed persisted properties through `code.apply_component.properties`. The generated shell owns `api.property({ default: ... })`, `api.serializable`, `api.displayName(...)`, and `api.editorType(...)`; never hand-edit that decorator region.
 - Do not duplicate authoritative state already owned by an official component or system.
 
-Resolve official components and systems only with names and access methods proven by the project declarations. Validate optional and required dependencies before dereferencing them. A dependency failure must log a bounded diagnostic and stop safely; do not invent a replacement API.
+Resolve official components only with names and access methods proven by the project declarations. For every scene system declared as `ISubSystem`, read `common.data` to prove `IScene.findSystem(...)`, then acquire it from the current component with `this.entity.scene.findSystem("ExactSystemClassName")`. Never use `api.<System>.ins`, `<System>.ins`, `getInstance()`, or a module/global singleton shortcut, even if `.data` exposes one or `dist/game.js` uses one internally. Validate the returned system before dereferencing it; if the current scene cannot provide it, log a bounded diagnostic and stop safely instead of falling back to a singleton.
 
 ## Lifecycle and cleanup
 
@@ -46,7 +46,7 @@ Log bounded scalar values or explicitly formatted summaries. Never log secrets, 
 
 ## MCP write and verification sequence
 
-1. Use `catalog_search` and `catalog_describe` to obtain the current schemas for `code.create_component`, `code.read_component`, `code.apply_component`, `code.write_component_body`, and `code.lint` as needed.
+1. Use Authoring Search/Doc to discover the public creation, read, write, lint, and attachment entrypoints. Only after an exact Authoring gap may a captured `code` or `preset` Catalog lookup/invocation run through `authoring_route_fallback`.
 2. Create a component only for a new responsibility. Accept only the editor-generated `class_id`; if the result is uncertain, reconcile with `inspect(projection="user_components")` before considering another create.
 3. Before modifying an existing component, call `code.read_component` and preserve declarations or regions outside the requested scope.
 4. Lint the proposed code before writing.

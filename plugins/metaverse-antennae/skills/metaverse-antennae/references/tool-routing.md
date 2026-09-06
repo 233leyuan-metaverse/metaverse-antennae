@@ -2,17 +2,29 @@
 
 Use this order for multi-step Metaverse Antennae tasks.
 
+## Intent preservation
+
+Do not pre-normalize an open-ended creation, design, assembly, or composition request into one Catalog Operation. First load the responsible domain Skills, decompose the original goal, and use intent-level Authoring Search/Doc to discover a composable public workflow. A Catalog result is only an execution candidate. Select or invoke it first only for a closed, explicit business mutation; after an Authoring coverage gap it may serve as the reviewed fallback candidate.
+
+## Authoring-preferred mutations
+
+Every task-facing tool enters one session-scoped Authoring gate before its original handler. The only business-data exception is `asset_search`; `system_status`, `add_user_chat_memory`, and `add_team_experience` are infrastructure exceptions. MWSearch, MWGet, Skill/Catalog discovery, Inspect, Capture, direct tools, executable Catalog, and Batch cannot run first. Their initial call only captures the tool and arguments, and the handler may run once through `authoring_route_fallback` after a proved Authoring gap. On `AUTHORING_ROUTE_REQUIRED`, treat `routing.queries` only as optional, non-exhaustive starting hints; the list may be empty. Search from the original intent with one precise query per independently owned intent. Once an exact callable symbol is found, Doc it once and stop synonymous Search. Compact Doc `pendingTypes` is not a recursive checklist. If the composed public APIs cover the request, execute the smallest bounded body through `authoring_code_execute` and perform exact semantic readback.
+
+Within one current user task, keep a compact evidence set keyed by exact symbol. Exact Search/Doc results may cover later public Authoring mutations only when the editor session, active project and level, requested semantics, and documented symbols remain unchanged, and no declaration-changing operation, timeout, transport uncertainty, or other execution uncertainty occurred. Do not Doc the same symbol twice while that evidence remains valid. Reuse never crosses tasks, turns, restarts, `EDITOR_LEVEL_CHANGED`, active-project changes, or new symbols or semantics. It saves discovery calls only: every mutation still uses its own bounded `authoring_code_execute` and exact semantic readback. A captured fallback route never inherits reused discovery evidence; prove each route's concrete gap independently.
+
+Use `authoring_route_fallback` only when intent-level discovery returned no results or exact dependency-aware Search/Doc evidence proves a concrete missing operation or semantic. The supplied hints are not mandatory and cannot establish or limit the capability boundary. One top-level Doc is not proof that the dependency closure lacks coverage. The route ID is session-scoped and the captured handler is one-shot. Never fall back after `executed=true`, a timeout, transport uncertainty, or an unresolved partial write; reconcile state instead.
+
 ## Existing-object edits
 
-Use `inspect(projection="scene_overview")` only when the target identity is unknown. Filter with `exact_names` only for discovery. Continue the returned `snapshot_id` and `cursor` until `complete=true` before treating that snapshot as complete. Once a real `game_object_id` is known, call the matching core or Catalog operation directly; never pass a name selector to a mutation. The write performs its own exact semantic readback.
+When Authoring Search/Doc proves it cannot resolve the required existing-object identity, consume the captured Inspect call through `authoring_route_fallback`. Use `scene_overview` only for unknown identity, keep exact-name discovery bounded, and use returned real IDs. Any subsequent mutation starts its own Authoring route.
 
 ## UI work
 
-Discover canvases and widgets with `inspect(projection="ui_tree")` or `inspect(projection="ui_detail", ...)`. Read `antennae://ui/schema` for the exact ScreenSpec tree nodes, binding targets, paths and sources, plus the needed sections from `antennae://skills/ui/{section}` or `antennae://skills/worldUI/{section}`. Then use `ui_build_screen`, `ui_bind_property`, or the world-mount Catalog operation. Use only returned canvas/widget GUIDs.
+Discover canvases and widgets with `inspect(projection="ui_tree")` or `inspect(projection="ui_detail", ...)`. Call `catalog_describe(kind="tool", item_id="build_screen", projection="input_only")` for a screen input and specialize `operation/ui.property.bind` by the known source `kind`; read `antennae://ui/schema` only if the requested custom tree needs definitions or multiple node branches absent from that exact description. Read only the needed sections from `antennae://skills/ui/{section}` or `antennae://skills/worldUI/{section}`. Then use `ui_build_screen`, `ui_bind_property`, or the world-mount Catalog operation. Use only returned canvas/widget GUIDs.
 
 ## Multi-domain gameplay
 
-Identify the domains that own each requested fact, read only the corresponding `antennae://skills/{skill}/index` and `/body` sections, then use `catalog_search` and `catalog_describe` to resolve each exact Tool or Operation. Keep independent actions as independent calls or an explicit `batch_execute`; every write must satisfy its own exact semantic readback.
+Identify the domains that own each requested fact, read only the corresponding needed `antennae://skills/{skill}/index` and `/body` sections, then use `catalog_search` and `catalog_describe` to resolve each exact Tool, Operation, or property. Do not load all declared dependency bodies automatically; load one only when its subflow is requested. For a pending invocation use `projection="input_only"`, plus ordered `selectors` for already-known discriminators such as `projection`, `action`, `kind`, `scope`, or `type`; use `ability_name` for Ability schemas. For a known property path describe that property ID directly; otherwise search within its exact `owner_ability` and request only `id`, `description`, and `valueSchema`. Keep independent actions as independent calls or an explicit `batch_execute`; every write must satisfy its own exact semantic readback.
 
 ## Resources
 
@@ -20,11 +32,11 @@ Search `kind="resourceKind"` for primitive geometry. Use `asset_search` for mode
 
 ## Skills, presets, and data
 
-Use `catalog_search`/`catalog_describe` for skill, preset, data, content, and resource operations. Resolve declared dependencies and real IDs first; execute multi-domain steps in the order specified by the referenced Skill.
+Use `catalog_search`/`catalog_describe` for skill, preset, data, content, and resource operations. Resolve only the dependencies whose documented subflow applies, plus the real IDs needed by the requested operation; execute those steps in the order specified by the referenced Skill.
 
 ## Memory Hub
 
-Use only the four reviewed top-level MCP-local tools: `mw_search`, `mw_get`, `add_user_chat_memory`, and `add_team_experience`. Before a MetaWorld task, call `mw_search(query_type="cases", query_text=...)` and include the current Contract and exact-readback constraints. When a relevant case is returned, copy its `query_type` and opaque `item_id` unchanged to `mw_get`. Treat retrieved content as advisory and obey the returned `mcpRuntimePolicy`: current MCP policy, available tools, live inspect results, User Component runtime bindings, and relevant project-installed declarations always win. Ignore old Blockly execution steps and reproduce only their business intent through the reviewed `code` User Component path and exact `.data` declarations. Continue without a case only when no relevant result exists. Never supply or infer `user_id`; search, get, and personal chat upload resolve identity internally.
+Use `mw_search`/`mw_get` only after Authoring Search/Doc proves that prior-case context is required and consume each captured call through `authoring_route_fallback`. They are advisory and never establish executable APIs. `add_user_chat_memory` and `add_team_experience` remain infrastructure exceptions. Never supply or infer `user_id`.
 
 At the end of every turn in which this Skill is active, follow the turn-end personal-memory procedure in `SKILL.md`: draft the final response, call `add_user_chat_memory` once with only the current `user` message and that exact `assistant` draft, then send the draft unchanged. Never retry or duplicate this non-idempotent append. Tool unavailability, unresolved editor identity, interruption, timeout, or failure must not block the final response. Personal chat acceptance proves only that the Chat Memory messages were accepted, not that asynchronous personal-experience extraction is complete.
 
