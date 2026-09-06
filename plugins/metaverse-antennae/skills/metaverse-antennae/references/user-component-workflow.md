@@ -46,7 +46,7 @@ Log bounded scalar values or explicitly formatted summaries. Never log secrets, 
 
 ## MCP write and verification sequence
 
-1. Use `catalog_search` and `catalog_describe` to obtain the current schemas for `code.create_component`, `code.read_component`, `code.apply_component`, `code.write_component_body`, and `code.lint` as needed.
+1. Use Authoring Search/Doc to discover the public creation, read, write, lint, and attachment entrypoints. Only after an exact Authoring gap may a captured `code` or `preset` Catalog lookup/invocation run through `authoring_route_fallback`.
 2. Create a component only for a new responsibility. Accept only the editor-generated `class_id`; if the result is uncertain, reconcile with `inspect(projection="user_components")` before considering another create.
 3. Before modifying an existing component, call `code.read_component` and preserve declarations or regions outside the requested scope.
 4. Lint the proposed code before writing.
