@@ -221,6 +221,52 @@ describe("convertRollout", () => {
   });
 });
 
+/**
+ * Codex fires the Stop hook a couple of hundred milliseconds before it flushes
+ * `task_complete`, so without a wait the triggering turn parses as in-progress,
+ * is left out of the sidecar, and gets uploaded a second time by the next run.
+ */
+describe("late task_complete", () => {
+  /** Drop the completion marker and hand back the line so a test can re-add it. */
+  function withheldCompletion(file: string): string {
+    const lines = fs.readFileSync(file, "utf-8").split("\n").filter(Boolean);
+    const completion = lines.find((line) => line.includes('"task_complete"'));
+    expect(completion, "expected a task_complete line in the fixture").toBeDefined();
+    fs.writeFileSync(file, `${lines.filter((line) => line !== completion).join("\n")}\n`);
+    return completion!;
+  }
+
+  it("waits for the marker so the turn is recorded and not uploaded twice", async () => {
+    const dir = stageFixtures();
+    const file = path.join(dir, "rollout-exec-mcp.jsonl");
+    const completion = withheldCompletion(file);
+
+    const pending = convertRollout(file, { config: baseConfig });
+    setTimeout(() => fs.appendFileSync(file, `${completion}\n`), 200);
+    await pending;
+
+    expect(exporter.getFinishedSpans().filter((s) => s.name === "Codex Turn")).toHaveLength(1);
+    expect(fs.readFileSync(`${file}.langfuse`, "utf-8").trim()).not.toBe("");
+
+    // The next hook run has nothing left to do, so the turn is traced once.
+    exporter.reset();
+    await convertRollout(file, { config: baseConfig });
+    expect(exporter.getFinishedSpans()).toHaveLength(0);
+  });
+
+  it("still uploads a turn whose completion never arrives", async () => {
+    const dir = stageFixtures();
+    const file = path.join(dir, "rollout-exec-mcp.jsonl");
+    withheldCompletion(file);
+
+    await convertRollout(file, { config: baseConfig });
+
+    // Fail-open: an interrupted session is traced, just not recorded as done.
+    expect(exporter.getFinishedSpans().filter((s) => s.name === "Codex Turn")).toHaveLength(1);
+    expect(fs.existsSync(`${file}.langfuse`)).toBe(false);
+  });
+});
+
 describe("deterministic trace ids (trace_seed)", () => {
   const seed = "ci-run-42";
   const seededConfig: Config = { ...baseConfig, trace_seed: seed };

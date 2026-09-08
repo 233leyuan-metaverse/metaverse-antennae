@@ -8542,11 +8542,11 @@ var INITIAL_RETRY_DELAY = 1e3;
 var MAX_RETRY_DELAY = 6e4;
 var DEFAULT_MAX_RETRIES = 2;
 var JITTER_FACTOR = .2;
-function addPositiveJitter(delay) {
-	return delay * (1 + Math.random() * JITTER_FACTOR);
+function addPositiveJitter(delay$1) {
+	return delay$1 * (1 + Math.random() * JITTER_FACTOR);
 }
-function addSymmetricJitter(delay) {
-	return delay * (1 + (Math.random() - .5) * JITTER_FACTOR);
+function addSymmetricJitter(delay$1) {
+	return delay$1 * (1 + (Math.random() - .5) * JITTER_FACTOR);
 }
 function getRetryDelayFromHeaders(response, retryAttempt) {
 	const retryAfter = response.headers.get("Retry-After");
@@ -8555,16 +8555,16 @@ function getRetryDelayFromHeaders(response, retryAttempt) {
 		if (!isNaN(retryAfterSeconds) && retryAfterSeconds > 0) return Math.min(retryAfterSeconds * 1e3, MAX_RETRY_DELAY);
 		const retryAfterDate = new Date(retryAfter);
 		if (!isNaN(retryAfterDate.getTime())) {
-			const delay = retryAfterDate.getTime() - Date.now();
-			if (delay > 0) return Math.min(Math.max(delay, 0), MAX_RETRY_DELAY);
+			const delay$1 = retryAfterDate.getTime() - Date.now();
+			if (delay$1 > 0) return Math.min(Math.max(delay$1, 0), MAX_RETRY_DELAY);
 		}
 	}
 	const rateLimitReset = response.headers.get("X-RateLimit-Reset");
 	if (rateLimitReset) {
 		const resetTime = parseInt(rateLimitReset, 10);
 		if (!isNaN(resetTime)) {
-			const delay = resetTime * 1e3 - Date.now();
-			if (delay > 0) return addPositiveJitter(Math.min(delay, MAX_RETRY_DELAY));
+			const delay$1 = resetTime * 1e3 - Date.now();
+			if (delay$1 > 0) return addPositiveJitter(Math.min(delay$1, MAX_RETRY_DELAY));
 		}
 	}
 	return addSymmetricJitter(Math.min(INITIAL_RETRY_DELAY * Math.pow(2, retryAttempt), MAX_RETRY_DELAY));
@@ -8572,8 +8572,8 @@ function getRetryDelayFromHeaders(response, retryAttempt) {
 async function requestWithRetries(requestFn, maxRetries = DEFAULT_MAX_RETRIES) {
 	let response = await requestFn();
 	for (let i = 0; i < maxRetries; ++i) if ([408, 429].includes(response.status) || response.status >= 500) {
-		const delay = getRetryDelayFromHeaders(response, i);
-		await new Promise((resolve) => setTimeout(resolve, delay));
+		const delay$1 = getRetryDelayFromHeaders(response, i);
+		await new Promise((resolve) => setTimeout(resolve, delay$1));
 		response = await requestFn();
 	} else break;
 	return response;
@@ -19620,9 +19620,9 @@ async function uploadWithBackoff(params) {
 		return uploadResponse;
 	} catch (e) {
 		if (attempt === maxRetries) throw e;
-		const delay = baseDelay * Math.pow(2, attempt);
+		const delay$1 = baseDelay * Math.pow(2, attempt);
 		const jitter = Math.random() * 1e3;
-		await new Promise((resolve) => setTimeout(resolve, delay + jitter));
+		await new Promise((resolve) => setTimeout(resolve, delay$1 + jitter));
 	}
 }
 var experimentKeys = [
@@ -46911,8 +46911,8 @@ function parseRetryAfterToMills(retryAfter) {
 	if (retryAfter == null) return;
 	const seconds = Number.parseInt(retryAfter, 10);
 	if (Number.isInteger(seconds)) return seconds > 0 ? seconds * 1e3 : -1;
-	const delay = new Date(retryAfter).getTime() - Date.now();
-	if (delay >= 0) return delay;
+	const delay$1 = new Date(retryAfter).getTime() - Date.now();
+	if (delay$1 >= 0) return delay$1;
 	return 0;
 }
 var init_is_export_retryable = __esmMin((() => {}));
@@ -52368,6 +52368,33 @@ function emitToolCall(tc, parent, clip, fallbackEnd) {
 		parentSpanContext: parent.otelSpan.spanContext()
 	}).end(new Date(tc.endTime ?? fallbackEnd));
 }
+/** Bounded wait for the trailing turn's completion marker; see loadSettledSession. */
+const COMPLETION_REREADS = 10;
+const COMPLETION_REREAD_MS = 150;
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+/**
+* Read the rollout once the trailing turn has been marked complete.
+*
+* Codex flushes `task_complete` a couple of hundred milliseconds after it fires
+* the Stop hook, so the turn that triggered this run normally parses as still
+* in progress. Such turns are deliberately kept out of the sidecar ledger and
+* re-uploaded by the next hook run, and since every upload generates its own
+* trace id the turn is traced twice instead of being finalized in place. Give
+* the marker a bounded chance to land; an interrupted or aborted turn still
+* counts as settled, so only a crashed session pays the full wait.
+*/
+async function loadSettledSession(rolloutFile) {
+	for (let attempt = 0;; attempt++) {
+		const parsed = parseSession(await loadSession(rolloutFile));
+		const trailing = parsed.turns[parsed.turns.length - 1];
+		if (!trailing || trailing.completed) return parsed;
+		if (attempt >= COMPLETION_REREADS) {
+			debugLog(`trailing turn still in progress after ${attempt} re-read(s); uploading as-is`);
+			return parsed;
+		}
+		await delay(COMPLETION_REREAD_MS);
+	}
+}
 /**
 * Convert a Codex rollout file into Langfuse traces.
 *
@@ -52376,7 +52403,7 @@ function emitToolCall(tc, parent, clip, fallbackEnd) {
 * turn via `parentObservation`.
 */
 async function convertRollout(rolloutFile, options) {
-	const { sessionMeta, turns } = parseSession(await loadSession(rolloutFile));
+	const { sessionMeta, turns } = options.parentObservation ? parseSession(await loadSession(rolloutFile)) : await loadSettledSession(rolloutFile);
 	debugLog(`parsed ${turns.length} turn(s) from ${path.basename(rolloutFile)}`);
 	if (options.parentObservation) {
 		for (const turn of turns) await emitTurn(turn, sessionMeta, {
