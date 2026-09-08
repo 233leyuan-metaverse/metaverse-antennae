@@ -130,7 +130,16 @@ export type EventMsgPayload = {
     model_context_window?: number;
   } | null;
   /** item_completed */
-  item?: { type?: string; content?: MessageContentPart[] } | null;
+  item?: {
+    type?: string;
+    id?: string;
+    content?: MessageContentPart[];
+    server?: string;
+    tool?: string;
+    arguments?: unknown;
+    status?: string;
+    result?: unknown;
+  } | null;
   /** collab_agent_spawn_end */
   new_thread_id?: string | null;
   /** sub_agent_activity */

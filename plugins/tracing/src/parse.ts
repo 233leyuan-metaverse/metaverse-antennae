@@ -14,7 +14,19 @@ import type {
   ToolCall,
   Turn,
 } from "./types.js";
+import { extractMcpRef } from "./mcp-gate.js";
 import { isPrimitive, toText } from "./utils.js";
+
+function attachMcpHint(tc: ToolCall, ...values: unknown[]): void {
+  if (tc.mcp) return;
+  for (const value of values) {
+    const hinted = extractMcpRef(value);
+    if (hinted) {
+      tc.mcp = hinted;
+      return;
+    }
+  }
+}
 
 /** Extract printable text from a Codex message `content` array. */
 function extractMessageText(content: MessageContentPart[] | undefined): string {
@@ -222,6 +234,7 @@ export function parseSession(lines: RolloutLine[]): {
           args: parseArgs(call.arguments),
           startTime: ts,
         };
+        attachMcpHint(tc, call.name, call.arguments);
         s.toolCalls.push(tc);
         toolCallsById.set(tc.callId, tc);
       } else if (p.type === "custom_tool_call") {
@@ -233,6 +246,7 @@ export function parseSession(lines: RolloutLine[]): {
           args: parseArgs(call.input),
           startTime: ts,
         };
+        attachMcpHint(tc, call.name, call.input, tc.args);
         s.toolCalls.push(tc);
         toolCallsById.set(tc.callId, tc);
       } else if (p.type === "local_shell_call") {
@@ -309,6 +323,55 @@ export function parseSession(lines: RolloutLine[]): {
         // copy may be concatenated with injected context.
         const text = extractMessageText(p.item.content);
         if (text && !turn!.userInput) turn!.userInput = text;
+      } else if (et === "item_completed" && p.item?.type === "McpToolCall") {
+        // Current Codex persists MCP completion as item_completed, not
+        // mcp_tool_call_begin/end. The model-facing call is often `exec`.
+        const item = p.item;
+        const server = typeof item.server === "string" ? item.server : undefined;
+        const toolName = typeof item.tool === "string" ? item.tool : undefined;
+        if (server && toolName) {
+          const callId = typeof item.id === "string" ? item.id : `mcp_${server}_${toolName}_${ts}`;
+          let existing = toolCallsById.get(callId);
+          if (!existing && turn) {
+            for (let i = turn.steps.length - 1; i >= 0 && !existing; i--) {
+              for (const candidate of turn.steps[i].toolCalls.slice().reverse()) {
+                if (candidate.mcp?.server === server && candidate.mcp?.tool === toolName) {
+                  existing = candidate;
+                  break;
+                }
+                const hinted = extractMcpRef(candidate.args) ?? extractMcpRef(candidate.name);
+                if (hinted?.server === server && hinted?.tool === toolName) {
+                  existing = candidate;
+                  break;
+                }
+              }
+            }
+          }
+          if (existing) {
+            existing.mcp = { server, tool: toolName };
+            existing.endTime = Math.max(existing.endTime ?? ts, ts);
+            if (existing.output == null && item.result != null) existing.output = item.result;
+            if ((item.status === "failed" || item.status === "declined") && !existing.error) {
+              existing.error = toText(item.result) || item.status;
+            }
+          } else {
+            const tc: ToolCall = {
+              callId,
+              name: `${server}.${toolName}`,
+              args: item.arguments,
+              startTime: ts,
+              endTime: ts,
+              output: item.result,
+              mcp: { server, tool: toolName },
+              error:
+                item.status === "failed" || item.status === "declined"
+                  ? toText(item.result) || item.status
+                  : undefined,
+            };
+            ensureStep(ts).toolCalls.push(tc);
+            toolCallsById.set(callId, tc);
+          }
+        }
       } else if (et === "agent_message" && typeof p.message === "string") {
         turn!.lastAgentMessage = p.message;
       } else if (et === "token_count") {

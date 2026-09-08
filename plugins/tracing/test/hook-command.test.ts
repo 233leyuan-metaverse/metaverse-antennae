@@ -28,12 +28,14 @@ describe("bundled Stop hook command", () => {
     expect(readHookCommand().replaceAll("${PLUGIN_ROOT}", "")).not.toContain("$");
   });
 
-  it("diagnoses a missing Node runtime without blocking Codex", () => {
+  it("resolves the plugin root from the shim path when PLUGIN_ROOT is unset", () => {
     const shim = fs.readFileSync(hookShimFile, "utf-8");
+    expect(shim).toContain("set \"HOOK_DIR=%~dp0\"");
+    expect(shim).toContain("set \"PLUGIN_HOME=%HOOK_DIR%..\"");
     expect(shim).toContain("where node");
     expect(shim).toContain("Node.js");
     expect(shim).toContain("langfuse-hook.log");
     expect(shim).toContain("exit /b 0");
-    expect(shim).toContain('node "%PLUGIN_ROOT%\\dist\\index.mjs"');
+    expect(shim).toContain('node "%PLUGIN_HOME%\\dist\\index.mjs"');
   });
 });

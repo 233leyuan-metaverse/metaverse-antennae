@@ -51699,9 +51699,23 @@ function uint8ArrayToHex(array$1) {
 
 //#endregion
 //#region src/mcp-gate.ts
+/**
+* Codex may persist MCP as `server__tool`, `mcp__server__tool`, or an `exec`
+* script that calls `tools.mcp__server__tool(...)`.
+*/
+function extractMcpRef(value) {
+	const match = (typeof value === "string" ? value : value == null ? "" : JSON.stringify(value)).match(/mcp__([A-Za-z0-9][A-Za-z0-9_-]*)__([A-Za-z0-9_]+)/);
+	if (!match) return void 0;
+	return {
+		server: match[1],
+		tool: match[2]
+	};
+}
 function toolMatchesRequiredMcp(tc, servers) {
 	if (tc.mcp && servers.has(tc.mcp.server)) return true;
-	for (const server of servers) if (tc.name === server || tc.name.startsWith(`${server}__`)) return true;
+	const hinted = extractMcpRef(tc.name) ?? extractMcpRef(tc.args);
+	if (hinted && servers.has(hinted.server)) return true;
+	for (const server of servers) if (tc.name === server || tc.name.startsWith(`${server}__`) || tc.name.startsWith(`mcp__${server}__`)) return true;
 	return false;
 }
 /** True when this turn called at least one MCP server in the allowlist. */
@@ -51785,6 +51799,16 @@ function debugLog(...args) {
 
 //#endregion
 //#region src/parse.ts
+function attachMcpHint(tc, ...values) {
+	if (tc.mcp) return;
+	for (const value of values) {
+		const hinted = extractMcpRef(value);
+		if (hinted) {
+			tc.mcp = hinted;
+			return;
+		}
+	}
+}
 /** Extract printable text from a Codex message `content` array. */
 function extractMessageText(content) {
 	if (!Array.isArray(content)) return "";
@@ -51919,6 +51943,7 @@ function parseSession(lines) {
 					args: parseArgs(call.arguments),
 					startTime: ts
 				};
+				attachMcpHint(tc, call.name, call.arguments);
 				s.toolCalls.push(tc);
 				toolCallsById.set(tc.callId, tc);
 			} else if (p.type === "custom_tool_call") {
@@ -51930,6 +51955,7 @@ function parseSession(lines) {
 					args: parseArgs(call.input),
 					startTime: ts
 				};
+				attachMcpHint(tc, call.name, call.input, tc.args);
 				s.toolCalls.push(tc);
 				toolCallsById.set(tc.callId, tc);
 			} else if (p.type === "local_shell_call") {
@@ -51995,6 +52021,50 @@ function parseSession(lines) {
 			} else if (et === "item_completed" && p.item?.type === "UserMessage") {
 				const text = extractMessageText(p.item.content);
 				if (text && !turn.userInput) turn.userInput = text;
+			} else if (et === "item_completed" && p.item?.type === "McpToolCall") {
+				const item = p.item;
+				const server = typeof item.server === "string" ? item.server : void 0;
+				const toolName = typeof item.tool === "string" ? item.tool : void 0;
+				if (server && toolName) {
+					const callId = typeof item.id === "string" ? item.id : `mcp_${server}_${toolName}_${ts}`;
+					let existing = toolCallsById.get(callId);
+					if (!existing && turn) for (let i = turn.steps.length - 1; i >= 0 && !existing; i--) for (const candidate of turn.steps[i].toolCalls.slice().reverse()) {
+						if (candidate.mcp?.server === server && candidate.mcp?.tool === toolName) {
+							existing = candidate;
+							break;
+						}
+						const hinted = extractMcpRef(candidate.args) ?? extractMcpRef(candidate.name);
+						if (hinted?.server === server && hinted?.tool === toolName) {
+							existing = candidate;
+							break;
+						}
+					}
+					if (existing) {
+						existing.mcp = {
+							server,
+							tool: toolName
+						};
+						existing.endTime = Math.max(existing.endTime ?? ts, ts);
+						if (existing.output == null && item.result != null) existing.output = item.result;
+						if ((item.status === "failed" || item.status === "declined") && !existing.error) existing.error = toText(item.result) || item.status;
+					} else {
+						const tc = {
+							callId,
+							name: `${server}.${toolName}`,
+							args: item.arguments,
+							startTime: ts,
+							endTime: ts,
+							output: item.result,
+							mcp: {
+								server,
+								tool: toolName
+							},
+							error: item.status === "failed" || item.status === "declined" ? toText(item.result) || item.status : void 0
+						};
+						ensureStep(ts).toolCalls.push(tc);
+						toolCallsById.set(callId, tc);
+					}
+				}
 			} else if (et === "agent_message" && typeof p.message === "string") turn.lastAgentMessage = p.message;
 			else if (et === "token_count") {
 				if (p.info?.total_token_usage) turn.totalUsage = p.info.total_token_usage;

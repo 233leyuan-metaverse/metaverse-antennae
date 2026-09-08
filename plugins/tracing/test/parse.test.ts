@@ -302,6 +302,18 @@ describe("parseSession", () => {
   });
 });
 
+describe("exec-wrapped MCP", () => {
+  it("attaches antennae_sideapi from exec scripts and McpToolCall items", () => {
+    const { turns } = parseSession(loadFixture("rollout-exec-mcp.jsonl"));
+    expect(turns).toHaveLength(1);
+    const tools = turns[0]!.steps.flatMap((step) => step.toolCalls);
+    const inspect = tools.find((tc) => tc.mcp?.tool === "inspect");
+    expect(inspect, "expected an inspect MCP tool call").toBeDefined();
+    expect(inspect!.mcp).toEqual({ server: "antennae_sideapi", tool: "inspect" });
+    expect(inspect!.output).toBeTruthy();
+  });
+});
+
 describe("user prompt extraction", () => {
   it("prefers the structured UserMessage over the injected context block", () => {
     const { turns } = parseSession(loadFixture("rollout-agents-preamble-main.jsonl"));

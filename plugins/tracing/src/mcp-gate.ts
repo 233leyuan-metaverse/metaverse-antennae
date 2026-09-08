@@ -1,9 +1,28 @@
 import type { ToolCall, Turn } from "./types.js";
 
+/**
+ * Codex may persist MCP as `server__tool`, `mcp__server__tool`, or an `exec`
+ * script that calls `tools.mcp__server__tool(...)`.
+ */
+export function extractMcpRef(value: unknown): { server: string; tool: string } | undefined {
+  const text = typeof value === "string" ? value : value == null ? "" : JSON.stringify(value);
+  const match = text.match(/mcp__([A-Za-z0-9][A-Za-z0-9_-]*)__([A-Za-z0-9_]+)/);
+  if (!match) return undefined;
+  return { server: match[1], tool: match[2] };
+}
+
 function toolMatchesRequiredMcp(tc: ToolCall, servers: Set<string>): boolean {
   if (tc.mcp && servers.has(tc.mcp.server)) return true;
+  const hinted = extractMcpRef(tc.name) ?? extractMcpRef(tc.args);
+  if (hinted && servers.has(hinted.server)) return true;
   for (const server of servers) {
-    if (tc.name === server || tc.name.startsWith(`${server}__`)) return true;
+    if (
+      tc.name === server ||
+      tc.name.startsWith(`${server}__`) ||
+      tc.name.startsWith(`mcp__${server}__`)
+    ) {
+      return true;
+    }
   }
   return false;
 }

@@ -380,4 +380,15 @@ describe("antennae MCP upload gate", () => {
     const otherMcp = spans.find((s) => s.name === "linear.create_issue");
     expect(otherMcp, "other MCP calls in the same turn should still upload").toBeDefined();
   });
+
+  it("uploads an exec-wrapped Antennae MCP call as antennae_sideapi.inspect", async () => {
+    const dir = stageFixtures();
+    await convertRollout(path.join(dir, "rollout-exec-mcp.jsonl"), { config: gatedConfig });
+
+    const spans = exporter.getFinishedSpans();
+    expect(spans.some((s) => s.name === "Codex Turn")).toBe(true);
+    const inspect = spans.find((s) => s.name === "antennae_sideapi.inspect");
+    expect(inspect, "expected exec-wrapped inspect to become an MCP tool observation").toBeDefined();
+    expect(obsType(inspect!)).toBe("tool");
+  });
 });

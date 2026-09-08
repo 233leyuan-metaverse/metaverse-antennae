@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { firstRequiredMcpTurnIndex, turnUsesRequiredMcp } from "../src/mcp-gate.js";
+import { extractMcpRef, firstRequiredMcpTurnIndex, turnUsesRequiredMcp } from "../src/mcp-gate.js";
 import type { Turn } from "../src/types.js";
 
-function turn(toolCalls: Array<{ name: string; server?: string }>): Turn {
+function turn(toolCalls: Array<{ name: string; server?: string; args?: unknown }>): Turn {
   return {
     startTime: 0,
     endTime: 1,
@@ -14,7 +14,7 @@ function turn(toolCalls: Array<{ name: string; server?: string }>): Turn {
         toolCalls: toolCalls.map((tc, index) => ({
           callId: `call-${index}`,
           name: tc.name,
-          args: {},
+          args: tc.args ?? {},
           startTime: 0,
           mcp: tc.server
             ? { server: tc.server, tool: tc.name.split("__")[1] ?? tc.name }
@@ -38,6 +38,18 @@ describe("mcp gate", () => {
     expect(turnUsesRequiredMcp(turn([{ name: "metaverse-antennae__inspect" }]), servers)).toBe(
       true,
     );
+    expect(turnUsesRequiredMcp(turn([{ name: "exec" }]), servers)).toBe(false);
+    expect(
+      turnUsesRequiredMcp(
+        turn([
+          {
+            name: "exec",
+            args: 'const r = await tools.mcp__antennae_sideapi__inspect({}); text(r);',
+          },
+        ]),
+        servers,
+      ),
+    ).toBe(true);
     expect(
       turnUsesRequiredMcp(turn([{ name: "linear__create_issue", server: "linear" }]), servers),
     ).toBe(false);
@@ -53,5 +65,13 @@ describe("mcp gate", () => {
     const antennae = turn([{ name: "antennae_sideapi__system_status" }]);
     expect(firstRequiredMcpTurnIndex([idle, antennae], servers)).toBe(1);
     expect(firstRequiredMcpTurnIndex([idle], servers)).toBe(-1);
+  });
+
+  it("extracts mcp__server__tool from exec scripts", () => {
+    expect(extractMcpRef('await tools.mcp__antennae_sideapi__inspect({})')).toEqual({
+      server: "antennae_sideapi",
+      tool: "inspect",
+    });
+    expect(extractMcpRef("exec_command rg wiki")).toBeUndefined();
   });
 });
