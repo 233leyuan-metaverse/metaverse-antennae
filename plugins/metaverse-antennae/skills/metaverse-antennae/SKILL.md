@@ -22,6 +22,7 @@ When an approved fallback route uses `catalog_search`, pass `kinds` only as a no
 
 ### Authoring context discipline
 
+- For player initial weapons, health, or other inheritable abilities, first locate and verify the existing scene object with `playerStart` through Authoring. Mount and configure the corresponding abilities (for example, `WeaponSlotAbility` and `health`) on that player-start object so the runtime player inherits them. Do not identify it by name alone or substitute a global script for player-start ability configuration. Changes to an individual player's state during play must target that actual runtime player entity.
 - Keep `authoring_api_search` results bounded with `limit <= 8`.
 - Search may return `abilityNames` from the component's generated Ability assembly constraints. Use these names instead of guessing from component names; multiple names are ownership candidates. An omitted field means no proven mapping in the declaration. Ownership alone does not establish property binding support, supported target roles, or whether an Ability can be added; read exact constraints when those facts are needed.
 - Use compact Authoring Doc by default. Do not request `detail="full"` for an entire class; expand only an exact blocking symbol or referenced type when compact detail is insufficient for safe execution.
