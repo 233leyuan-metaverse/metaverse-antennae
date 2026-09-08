@@ -52040,15 +52040,18 @@ function parseSession(lines) {
 				if (server && toolName) {
 					const callId = typeof item.id === "string" ? item.id : `mcp_${server}_${toolName}_${ts}`;
 					let existing = toolCallsById.get(callId);
-					if (!existing && turn) for (let i = turn.steps.length - 1; i >= 0 && !existing; i--) for (const candidate of turn.steps[i].toolCalls.slice().reverse()) {
-						if (candidate.mcp?.server === server && candidate.mcp?.tool === toolName) {
-							existing = candidate;
-							break;
-						}
-						const hinted = extractMcpRef(candidate.args) ?? extractMcpRef(candidate.name);
-						if (hinted?.server === server && hinted?.tool === toolName) {
-							existing = candidate;
-							break;
+					if (!existing && turn) {
+						const searchable = step ? [...turn.steps, step] : turn.steps;
+						for (let i = searchable.length - 1; i >= 0 && !existing; i--) for (const candidate of searchable[i].toolCalls.slice().reverse()) {
+							if (candidate.mcp?.server === server && candidate.mcp?.tool === toolName) {
+								existing = candidate;
+								break;
+							}
+							const hinted = extractMcpRef(candidate.args) ?? extractMcpRef(candidate.name);
+							if (hinted?.server === server && hinted?.tool === toolName) {
+								existing = candidate;
+								break;
+							}
 						}
 					}
 					if (existing) {

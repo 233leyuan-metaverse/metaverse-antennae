@@ -333,8 +333,11 @@ export function parseSession(lines: RolloutLine[]): {
           const callId = typeof item.id === "string" ? item.id : `mcp_${server}_${toolName}_${ts}`;
           let existing = toolCallsById.get(callId);
           if (!existing && turn) {
-            for (let i = turn.steps.length - 1; i >= 0 && !existing; i--) {
-              for (const candidate of turn.steps[i].toolCalls.slice().reverse()) {
+            // The exec call that wrapped this MCP tool usually sits in the
+            // step that is still open, which is not in `turn.steps` yet.
+            const searchable = step ? [...turn.steps, step] : turn.steps;
+            for (let i = searchable.length - 1; i >= 0 && !existing; i--) {
+              for (const candidate of searchable[i].toolCalls.slice().reverse()) {
                 if (candidate.mcp?.server === server && candidate.mcp?.tool === toolName) {
                   existing = candidate;
                   break;

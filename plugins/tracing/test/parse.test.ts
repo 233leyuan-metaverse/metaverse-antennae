@@ -312,6 +312,21 @@ describe("exec-wrapped MCP", () => {
     expect(inspect!.mcp).toEqual({ server: "antennae_sideapi", tool: "inspect" });
     expect(inspect!.output).toBeTruthy();
   });
+
+  /**
+   * The exec call and its McpToolCall item land in the same not-yet-closed
+   * step, so the merge lookup has to see the in-flight step or the call is
+   * traced twice.
+   */
+  it("merges the McpToolCall item into the exec call instead of duplicating it", () => {
+    const { turns } = parseSession(loadFixture("rollout-exec-mcp.jsonl"));
+    const tools = turns[0]!.steps.flatMap((step) => step.toolCalls);
+    expect(tools.filter((tc) => tc.mcp?.tool === "inspect")).toHaveLength(1);
+    expect(tools).toHaveLength(1);
+
+    const [inspect] = tools;
+    expect(inspect.endTime).toBeGreaterThan(inspect.startTime);
+  });
 });
 
 describe("user prompt extraction", () => {
