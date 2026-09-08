@@ -4,6 +4,16 @@ Use this workflow when runtime gameplay requires a new or modified User Componen
 
 ## Evidence order
 
+Before creating or modifying User Component code, read the complete example in the verified current UGC project: `DataFile/userComponent/templates/ugc_userComp_7a272b32239f.js.mfile`. Then read the target component's own template and relevant `.data` declarations. Do not copy the example class ID or overwrite its generated shell. Report an unavailable example rather than claiming to have read it.
+
+The example covers all six lifecycle methods, component lookup, scene system lookup, `api.remoteCall`, `api.replicable`, endpoint checks and project environment checks. Register listeners in Activated, remove them in Deactivated (including runtime-to-edit), and reuse idempotent cleanup in Destroy. Awaked initializes an instance once; Started initializes each runtime entry; Update handles active frame work.
+
+Use enum values directly in generated JS arguments, comparisons and decorator options. For CurrentEnvironment, use `"build"`, `"demo"`, or `"online"`; numeric enums use their declared numbers. `mw.Server`, `mw.Client`, and `mw.Multicast` are FunctionOption objects, not enums, so retain them in RPC decorators.
+
+Use `mw.SystemUtil.isClient()` and `mw.SystemUtil.isServer()` independently; both may be true. The requested project-state API is `GameUtil.getCurrentEnvironment()` (the checked implementation is named `GameUtils.getCurrentEnvironment()`). Verify its public runtime binding before use and do not substitute `getCurrentEnv()`.
+
+Acquire other components with `this.entity.getComponent("ExactComponentClassName")` and scene systems with `this.entity.scene.findSystem("ExactSystemClassName")`, using declaration-proven names and checking for absence. Read `decorate.data` before RPC or replication; `replicable` and persistence via `serializable` have different purposes. Preserve managed decorator regions and report a missing supported writer rather than bypassing it.
+
 Read only what the requested behavior needs:
 
 1. Treat every `DataFile/userComponent/docs/**/*.data` file in the current project as part of the sole public API contract. Search `DataFile/userComponent/docs/ugc` first with `pattern="*.data"`: read the relevant domain file, then `common.data` and `decorate.data` only as needed. If a UGC signature references `mw.Vector`, `mw.Rotation`, or another `mw.*` symbol, or the task requires an engine-level API, search `DataFile/userComponent/docs/engine` with the same pattern and read only the matching declarations. If the current workspace is that UGC project, use workspace-relative reads; otherwise use `code.search_project_source` and `code.read_project_source`. Do not substitute declarations from the MCP package, an installed plugin cache, a sibling checkout, Memory Hub, or model memory.
@@ -31,7 +41,7 @@ Resolve official components only with names and access methods proven by the pro
 - Create gameplay entities through declaration-proven `IScene.createEntity(...)` and destroy them with `IEntity.destroy(removeGo?)`. Do not bypass the entity system with raw `mw.GameObject.spawn/destroy` unless the declaration explicitly requires a non-entity engine object.
 - Acquire dependencies, validate configuration, and bind listeners during the declared initialization hook without duplicate initialization.
 - Retain every external callback, subscription, timer, or task handle needed for cleanup.
-- In the declared destroy hook, remove listeners, stop timers/tasks, cancel pending callbacks, and release only resources owned by this component.
+- In Deactivated, remove listeners and stop timers/tasks for the availability period. Reuse the same idempotent cleanup in Destroy as final fallback; returning to edit mode is not destruction.
 - Cleanup must be repeatable and safe after partial initialization.
 - Prefer events and timers. Do not perform unbounded component/system discovery, attachment, or logging every update tick.
 - Any declaration-proven asynchronous readiness retry must be low-frequency, bounded, and stop on success, terminal failure, or attempt exhaustion.
