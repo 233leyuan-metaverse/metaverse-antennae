@@ -222,48 +222,79 @@ describe("convertRollout", () => {
 });
 
 /**
- * Codex fires the Stop hook a couple of hundred milliseconds before it flushes
- * `task_complete`, so without a wait the triggering turn parses as in-progress,
- * is left out of the sidecar, and gets uploaded a second time by the next run.
+ * Codex writes `task_complete` only after the Stop hook returns, so the turn
+ * that triggered a run is always parsed as in-progress. Waiting for the marker
+ * is impossible; the turn has to be deduped on its id alone.
  */
-describe("late task_complete", () => {
-  /** Drop the completion marker and hand back the line so a test can re-add it. */
-  function withheldCompletion(file: string): string {
+describe("turn still in progress at hook time", () => {
+  /** Reproduce what the hook sees: everything up to, but not including, task_complete. */
+  function truncateAtCompletion(file: string): void {
     const lines = fs.readFileSync(file, "utf-8").split("\n").filter(Boolean);
-    const completion = lines.find((line) => line.includes('"task_complete"'));
-    expect(completion, "expected a task_complete line in the fixture").toBeDefined();
-    fs.writeFileSync(file, `${lines.filter((line) => line !== completion).join("\n")}\n`);
-    return completion!;
+    const completion = lines.findIndex((line) => line.includes('"task_complete"'));
+    expect(completion, "expected a task_complete line in the fixture").toBeGreaterThan(-1);
+    fs.writeFileSync(file, `${lines.slice(0, completion).join("\n")}\n`);
   }
 
-  it("waits for the marker so the turn is recorded and not uploaded twice", async () => {
+  it("uploads it once and records it without the completion marker", async () => {
     const dir = stageFixtures();
     const file = path.join(dir, "rollout-exec-mcp.jsonl");
-    const completion = withheldCompletion(file);
+    const complete = fs.readFileSync(file, "utf-8");
+    truncateAtCompletion(file);
 
-    const pending = convertRollout(file, { config: baseConfig });
-    setTimeout(() => fs.appendFileSync(file, `${completion}\n`), 200);
-    await pending;
-
+    await convertRollout(file, { config: baseConfig });
     expect(exporter.getFinishedSpans().filter((s) => s.name === "Codex Turn")).toHaveLength(1);
     expect(fs.readFileSync(`${file}.langfuse`, "utf-8").trim()).not.toBe("");
 
-    // The next hook run has nothing left to do, so the turn is traced once.
+    // By the next hook run Codex has written task_complete; the turn must not
+    // be traced a second time.
     exporter.reset();
+    fs.writeFileSync(file, complete);
     await convertRollout(file, { config: baseConfig });
     expect(exporter.getFinishedSpans()).toHaveLength(0);
   });
 
-  it("still uploads a turn whose completion never arrives", async () => {
+  it("keeps the turn's content, which is already complete by then", async () => {
     const dir = stageFixtures();
     const file = path.join(dir, "rollout-exec-mcp.jsonl");
-    withheldCompletion(file);
+    truncateAtCompletion(file);
 
     await convertRollout(file, { config: baseConfig });
 
-    // Fail-open: an interrupted session is traced, just not recorded as done.
-    expect(exporter.getFinishedSpans().filter((s) => s.name === "Codex Turn")).toHaveLength(1);
-    expect(fs.existsSync(`${file}.langfuse`)).toBe(false);
+    const spans = exporter.getFinishedSpans();
+    expect(spans.find((s) => s.name === "antennae_sideapi.inspect")).toBeDefined();
+    expect(spans.filter((s) => obsType(s) === "generation").length).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * Between two turns Codex emits bookkeeping events such as
+ * `thread_settings_applied`. They used to open an implicit turn milliseconds
+ * before the real `task_started`, tracing one contentless turn per exchange.
+ */
+describe("inter-turn bookkeeping events", () => {
+  it("does not trace an empty turn between two real turns", async () => {
+    const dir = stageFixtures();
+    const file = path.join(dir, "rollout-two-turns-main.jsonl");
+    const lines = fs.readFileSync(file, "utf-8").split("\n").filter(Boolean);
+
+    const secondTurn = lines.findIndex(
+      (line, i) => line.includes('"task_started"') && i > lines.findIndex((l) => l.includes('"task_started"')),
+    );
+    expect(secondTurn, "fixture must have two turns").toBeGreaterThan(-1);
+    lines.splice(
+      secondTurn,
+      0,
+      JSON.stringify({
+        timestamp: "2026-06-03T10:00:30.000Z",
+        type: "event_msg",
+        payload: { type: "thread_settings_applied" },
+      }),
+    );
+    fs.writeFileSync(file, `${lines.join("\n")}\n`);
+
+    await convertRollout(file, { config: baseConfig });
+
+    expect(exporter.getFinishedSpans().filter((s) => s.name === "Codex Turn")).toHaveLength(2);
   });
 });
 

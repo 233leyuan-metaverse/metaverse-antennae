@@ -1,6 +1,6 @@
 {
   "name": "tracing",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Trace OpenAI Codex Antennae sessions to Langfuse without per-user API keys.",
   "author": {
     "name": "Metaverse Antennae"

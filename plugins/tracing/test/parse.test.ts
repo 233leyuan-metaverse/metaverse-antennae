@@ -314,6 +314,41 @@ describe("exec-wrapped MCP", () => {
   });
 
   /**
+   * Codex writes `thread_settings_applied` (and similar bookkeeping) after a
+   * turn ends and milliseconds before the next `task_started`. Those events
+   * must not open a turn of their own.
+   */
+  it("drops the contentless turn an inter-turn event would open", () => {
+    const lines = loadFixture("rollout-exec-mcp.jsonl");
+    const nextTurn = [
+      {
+        timestamp: "2026-06-03T12:00:10.000Z",
+        type: "event_msg",
+        payload: { type: "thread_settings_applied" },
+      },
+      {
+        timestamp: "2026-06-03T12:00:10.003Z",
+        type: "event_msg",
+        payload: { type: "task_started", turn_id: "turn-2" },
+      },
+      {
+        timestamp: "2026-06-03T12:00:12.000Z",
+        type: "event_msg",
+        payload: { type: "agent_message", message: "done" },
+      },
+      {
+        timestamp: "2026-06-03T12:00:12.500Z",
+        type: "event_msg",
+        payload: { type: "task_complete", turn_id: "turn-2" },
+      },
+    ];
+    const { turns } = parseSession([...lines, ...nextTurn] as never);
+
+    expect(turns).toHaveLength(2);
+    expect(turns.map((turn) => turn.turnId).filter(Boolean)).toHaveLength(2);
+  });
+
+  /**
    * The exec call and its McpToolCall item land in the same not-yet-closed
    * step, so the merge lookup has to see the in-flight step or the call is
    * traced twice.

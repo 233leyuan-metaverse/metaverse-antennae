@@ -153,19 +153,36 @@ export function parseSession(lines: RolloutLine[]): {
     step = null;
   };
 
+  /**
+   * True for a turn Codex never announced with `task_started` and that carries
+   * nothing. Between two turns Codex emits bookkeeping events such as
+   * `thread_settings_applied`, and those open an implicit turn a few
+   * milliseconds before the real `task_started` arrives. Keeping them would
+   * trace one contentless turn per exchange and shift turn numbering.
+   */
+  const isParserDebris = (candidate: MutableTurn): boolean =>
+    candidate.turnId === undefined &&
+    candidate.steps.length === 0 &&
+    candidate.subagentThreadIds.length === 0 &&
+    candidate.userInput === undefined &&
+    candidate.userInputFallback === undefined;
+
   const finishTurn = (ts: number, opts: { completed: boolean; aborted: boolean }) => {
     if (!turn) return;
     closeStep(ts);
     turn.endTime = Math.max(turn.endTime, ts);
     turn.completed = opts.completed;
     turn.aborted = opts.aborted;
-    turn.userInput = turn.userInput ?? turn.userInputFallback;
-    turn.finalOutput = turn.lastAgentMessage ?? turn.steps.filter((s) => s.text).at(-1)?.text;
-    delete turn.lastAgentMessage;
-    delete turn.userInputFallback;
-    turns.push(turn);
+    const finished = turn;
     turn = null;
     toolCallsById = new Map();
+    if (isParserDebris(finished)) return;
+    finished.userInput = finished.userInput ?? finished.userInputFallback;
+    finished.finalOutput =
+      finished.lastAgentMessage ?? finished.steps.filter((s) => s.text).at(-1)?.text;
+    delete finished.lastAgentMessage;
+    delete finished.userInputFallback;
+    turns.push(finished);
   };
 
   for (const line of lines) {

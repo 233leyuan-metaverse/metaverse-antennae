@@ -321,36 +321,6 @@ function emitToolCall(
   tool.end(new Date(tc.endTime ?? fallbackEnd));
 }
 
-/** Bounded wait for the trailing turn's completion marker; see loadSettledSession. */
-const COMPLETION_REREADS = 10;
-const COMPLETION_REREAD_MS = 150;
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/**
- * Read the rollout once the trailing turn has been marked complete.
- *
- * Codex flushes `task_complete` a couple of hundred milliseconds after it fires
- * the Stop hook, so the turn that triggered this run normally parses as still
- * in progress. Such turns are deliberately kept out of the sidecar ledger and
- * re-uploaded by the next hook run, and since every upload generates its own
- * trace id the turn is traced twice instead of being finalized in place. Give
- * the marker a bounded chance to land; an interrupted or aborted turn still
- * counts as settled, so only a crashed session pays the full wait.
- */
-async function loadSettledSession(rolloutFile: string): Promise<ReturnType<typeof parseSession>> {
-  for (let attempt = 0; ; attempt++) {
-    const parsed = parseSession(await loadSession(rolloutFile));
-    const trailing = parsed.turns[parsed.turns.length - 1];
-    if (!trailing || trailing.completed) return parsed;
-    if (attempt >= COMPLETION_REREADS) {
-      debugLog(`trailing turn still in progress after ${attempt} re-read(s); uploading as-is`);
-      return parsed;
-    }
-    await delay(COMPLETION_REREAD_MS);
-  }
-}
-
 /**
  * Convert a Codex rollout file into Langfuse traces.
  *
@@ -362,11 +332,7 @@ export async function convertRollout(
   rolloutFile: string,
   options: { config: Config; parentObservation?: LangfuseObservation },
 ): Promise<void> {
-  // Subagent rollouts are written before the spawning turn ends and carry no
-  // dedup ledger, so only the top-level pass waits for completion.
-  const { sessionMeta, turns } = options.parentObservation
-    ? parseSession(await loadSession(rolloutFile))
-    : await loadSettledSession(rolloutFile);
+  const { sessionMeta, turns } = parseSession(await loadSession(rolloutFile));
   debugLog(`parsed ${turns.length} turn(s) from ${path.basename(rolloutFile)}`);
 
   // Subagent rollout: nest everything under the parent turn, no dedup/session wrapping.
@@ -391,7 +357,7 @@ export async function convertRollout(
 
   for (let turnIndex = startIndex; turnIndex < turns.length; turnIndex++) {
     const turn = turns[turnIndex];
-    if (turn.completed && turn.turnId && uploaded.has(turn.turnId)) {
+    if (turn.turnId && uploaded.has(turn.turnId)) {
       continue; // already uploaded in a previous hook invocation
     }
 
@@ -416,15 +382,12 @@ export async function convertRollout(
       },
     );
 
-    // Only mark completed turns as uploaded; an in-progress trailing turn is
-    // re-uploaded (and finalized) on the next hook invocation.
-    if (turn.completed && turn.turnId) {
+    // Record the turn even though `task_complete` has not landed yet: Codex
+    // writes that marker only after this hook returns, so it is never visible
+    // here, and re-uploading later would just create a second trace.
+    if (turn.turnId) {
       uploaded.add(turn.turnId);
       await markTurnUploaded(rolloutFile, turn.turnId);
-    } else if (turn.turnId) {
-      debugLog(
-        `uploaded in-progress turn ${turn.turnId}; waiting for completion before sidecar mark`,
-      );
     }
   }
 }
