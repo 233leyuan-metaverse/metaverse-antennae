@@ -1,3 +1,17 @@
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+
+/** Always-on one-line audit for Stop hook diagnosis. Never logs secrets. */
+export function auditLog(message: string): void {
+  try {
+    const home = process.env.CODEX_HOME?.trim() || path.join(os.homedir(), ".codex");
+    fs.appendFileSync(path.join(home, "langfuse-hook.log"), `${new Date().toISOString()} ${message}\n`);
+  } catch {
+    // fail-open
+  }
+}
+
 /** Read and JSON-parse the hook payload Codex writes to stdin. */
 export function readStdin<T>(): Promise<T> {
   return new Promise<T>((resolve, reject) => {

@@ -13,6 +13,11 @@ function officialKeysConfigured(config: Config): boolean {
   return Boolean(config.public_key && config.secret_key);
 }
 
+/** Prefer the write-only ingest token when both auth styles are present. */
+export function shouldUseOfficialKeys(config: Config): boolean {
+  return officialKeysConfigured(config) && !config.ingest_token;
+}
+
 function ingestExporter(config: Config): OTLPTraceExporter {
   const baseUrl = config.base_url.replace(/\/$/, "");
   return new OTLPTraceExporter({
@@ -33,7 +38,7 @@ function ingestExporter(config: Config): OTLPTraceExporter {
  * path uses a write-only ingest token against `/api/public/codex/otel/v1/traces`.
  */
 export function setupInstrumentation(config: Config): Instrumentation {
-  const useOfficial = officialKeysConfigured(config);
+  const useOfficial = shouldUseOfficialKeys(config);
   const spanProcessor = new LangfuseSpanProcessor({
     publicKey: config.public_key,
     secretKey: config.secret_key,

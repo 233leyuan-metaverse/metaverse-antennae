@@ -5,6 +5,7 @@ import * as path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { getConfig } from "../src/config.js";
+import { shouldUseOfficialKeys } from "../src/instrumentation.js";
 
 const tmpDirs: string[] = [];
 
@@ -261,5 +262,38 @@ describe("getConfig", () => {
       env: { LANGFUSE_CODEX_FAIL_ON_ERROR: "false" },
     });
     expect(fromEnv.fail_on_error).toBe(false);
+  });
+});
+
+describe("shouldUseOfficialKeys", () => {
+  it("uses ingest token when both official keys and ingest token are set", () => {
+    expect(
+      shouldUseOfficialKeys({
+        enabled: true,
+        public_key: "pk-lf-old",
+        secret_key: "sk-lf-old",
+        ingest_token: "lf-codex-token",
+        require_mcp_servers: [],
+        base_url: "https://example.test",
+        max_chars: 1000,
+        debug: false,
+        fail_on_error: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("falls back to official keys when no ingest token is present", () => {
+    expect(
+      shouldUseOfficialKeys({
+        enabled: true,
+        public_key: "pk-lf-old",
+        secret_key: "sk-lf-old",
+        require_mcp_servers: [],
+        base_url: "https://example.test",
+        max_chars: 1000,
+        debug: false,
+        fail_on_error: false,
+      }),
+    ).toBe(true);
   });
 });

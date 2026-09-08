@@ -2,7 +2,7 @@ import { getConfig } from "./config.js";
 import { canExportTraces, setupInstrumentation } from "./instrumentation.js";
 import { convertRollout } from "./trace.js";
 import type { HookInput } from "./types.js";
-import { debugLog, readStdin, setDebug } from "./utils.js";
+import { auditLog, debugLog, readStdin, setDebug } from "./utils.js";
 
 let failOnError = process.env.LANGFUSE_CODEX_FAIL_ON_ERROR === "true";
 
@@ -23,32 +23,38 @@ export async function runHook(): Promise<void> {
   try {
     hookInput = await readStdin<HookInput>();
   } catch (error) {
-    // No usable payload — nothing we can do.
+    auditLog(`skip empty-or-invalid-stdin: ${error instanceof Error ? error.message : "unknown"}`);
     return;
   }
 
   const config = await getConfig();
   setDebug(config.debug);
   failOnError = config.fail_on_error;
+  auditLog(`start transcript=${hookInput.transcript_path ?? ""} enabled=${config.enabled}`);
 
   if (!config.enabled) {
     debugLog("tracing disabled (set TRACE_TO_LANGFUSE=false to disable)");
+    auditLog("skip disabled");
     return;
   }
   if (!canExportTraces(config)) {
     debugLog("missing ingest token or LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY; skipping");
+    auditLog("skip missing-credentials");
     return;
   }
   if (!hookInput.transcript_path) {
     debugLog("hook payload missing transcript_path; skipping");
+    auditLog("skip missing-transcript_path");
     return;
   }
 
   const instrumentation = setupInstrumentation(config);
   try {
     await convertRollout(hookInput.transcript_path, { config });
+    auditLog("convert-ok");
   } catch (error) {
     debugLog("failed to convert rollout:", error);
+    auditLog(`convert-error: ${error instanceof Error ? error.message : "unknown"}`);
     if (config.fail_on_error) throw error;
   } finally {
     try {

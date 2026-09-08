@@ -6,7 +6,6 @@ import { describe, expect, it } from "vitest";
 
 const pluginRootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const hookConfigFile = path.join(pluginRootDir, "hooks/hooks.json");
-const hookShimFile = path.join(pluginRootDir, "hooks/run.cmd");
 
 function readHookCommand(): string {
   const config = JSON.parse(fs.readFileSync(hookConfigFile, "utf-8")) as {
@@ -16,8 +15,17 @@ function readHookCommand(): string {
 }
 
 describe("bundled Stop hook command", () => {
-  it("invokes the Windows shim through PLUGIN_ROOT", () => {
-    expect(readHookCommand()).toBe("\"${PLUGIN_ROOT}/hooks/run.cmd\"");
+  it("launches the bundle through node so Codex can spawn it on Windows", () => {
+    expect(readHookCommand()).toBe('node "${PLUGIN_ROOT}/dist/index.mjs"');
+  });
+
+  /**
+   * Codex spawns command hooks without a shell, so a `.cmd`/`.bat` shim fails
+   * to start and the Stop hook is reported as failed on every turn.
+   */
+  it("does not route through a batch shim", () => {
+    expect(readHookCommand()).not.toContain(".cmd");
+    expect(readHookCommand()).not.toContain(".bat");
   });
 
   it("does not depend on the old marketplace-root relative path", () => {
@@ -28,14 +36,7 @@ describe("bundled Stop hook command", () => {
     expect(readHookCommand().replaceAll("${PLUGIN_ROOT}", "")).not.toContain("$");
   });
 
-  it("resolves the plugin root from the shim path when PLUGIN_ROOT is unset", () => {
-    const shim = fs.readFileSync(hookShimFile, "utf-8");
-    expect(shim).toContain("set \"HOOK_DIR=%~dp0\"");
-    expect(shim).toContain("set \"PLUGIN_HOME=%HOOK_DIR%..\"");
-    expect(shim).toContain("where node");
-    expect(shim).toContain("Node.js");
-    expect(shim).toContain("langfuse-hook.log");
-    expect(shim).toContain("exit /b 0");
-    expect(shim).toContain('node "%PLUGIN_HOME%\\dist\\index.mjs"');
+  it("ships no batch shim in the plugin", () => {
+    expect(fs.existsSync(path.join(pluginRootDir, "hooks/run.cmd"))).toBe(false);
   });
 });

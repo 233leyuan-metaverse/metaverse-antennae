@@ -1,9 +1,10 @@
 import { createRequire } from "node:module";
-import * as fs from "node:fs/promises";
+import * as fs$1 from "node:fs/promises";
 import * as os$2 from "node:os";
 import * as path from "node:path";
 import * as zlib from "zlib";
 import { Readable } from "stream";
+import * as fs from "node:fs";
 
 //#region rolldown:runtime
 var __create = Object.create;
@@ -5423,7 +5424,7 @@ function stripUndefined(value) {
 }
 async function readConfigFile(file) {
 	try {
-		const raw = JSON.parse(await fs.readFile(file, "utf-8"));
+		const raw = JSON.parse(await fs$1.readFile(file, "utf-8"));
 		return PartialConfigSchema.parse(stripUndefined({
 			...raw,
 			enabled: raw.enabled != null ? parseBoolean(raw.enabled) : void 0,
@@ -5451,7 +5452,7 @@ function readJwtPayload(token) {
 }
 async function readCodexUserEmail(authFile) {
 	try {
-		const raw = JSON.parse(await fs.readFile(authFile, "utf-8"));
+		const raw = JSON.parse(await fs$1.readFile(authFile, "utf-8"));
 		const token = CodexAuthSchema.parse(raw).tokens?.id_token;
 		if (!token) return void 0;
 		const email$1 = readJwtPayload(token)?.email;
@@ -51197,6 +51198,10 @@ var import_src = require_src();
 function officialKeysConfigured(config$1) {
 	return Boolean(config$1.public_key && config$1.secret_key);
 }
+/** Prefer the write-only ingest token when both auth styles are present. */
+function shouldUseOfficialKeys(config$1) {
+	return officialKeysConfigured(config$1) && !config$1.ingest_token;
+}
 function ingestExporter(config$1) {
 	return new import_src$2.OTLPTraceExporter({
 		url: `${config$1.base_url.replace(/\/$/, "")}/api/public/codex/otel/v1/traces`,
@@ -51215,7 +51220,7 @@ function ingestExporter(config$1) {
 * path uses a write-only ingest token against `/api/public/codex/otel/v1/traces`.
 */
 function setupInstrumentation(config$1) {
-	const useOfficial = officialKeysConfigured(config$1);
+	const useOfficial = shouldUseOfficialKeys(config$1);
 	const spanProcessor = new LangfuseSpanProcessor({
 		publicKey: config$1.public_key,
 		secretKey: config$1.secret_key,
@@ -51737,6 +51742,13 @@ function firstRequiredMcpTurnIndex(turns, servers) {
 
 //#endregion
 //#region src/utils.ts
+/** Always-on one-line audit for Stop hook diagnosis. Never logs secrets. */
+function auditLog(message) {
+	try {
+		const home = process.env.CODEX_HOME?.trim() || path.join(os$2.homedir(), ".codex");
+		fs.appendFileSync(path.join(home, "langfuse-hook.log"), `${(/* @__PURE__ */ new Date()).toISOString()} ${message}\n`);
+	} catch {}
+}
 /** Read and JSON-parse the hook payload Codex writes to stdin. */
 function readStdin() {
 	return new Promise((resolve, reject) => {
@@ -52137,7 +52149,7 @@ function parseSession(lines) {
 */
 async function loadUploadedTurnIds(rolloutFile) {
 	try {
-		const data = await fs.readFile(`${rolloutFile}.langfuse`, "utf-8");
+		const data = await fs$1.readFile(`${rolloutFile}.langfuse`, "utf-8");
 		return new Set(data.split("\n").filter(Boolean));
 	} catch (error$1) {
 		if (error$1.code === "ENOENT") return /* @__PURE__ */ new Set();
@@ -52146,7 +52158,7 @@ async function loadUploadedTurnIds(rolloutFile) {
 }
 async function markTurnUploaded(rolloutFile, turnId) {
 	try {
-		await fs.appendFile(`${rolloutFile}.langfuse`, `${turnId}\n`, "utf-8");
+		await fs$1.appendFile(`${rolloutFile}.langfuse`, `${turnId}\n`, "utf-8");
 	} catch {}
 }
 
@@ -52154,7 +52166,7 @@ async function markTurnUploaded(rolloutFile, turnId) {
 //#region src/trace.ts
 init_esm$2();
 async function loadSession(file) {
-	const data = await fs.readFile(file, "utf-8");
+	const data = await fs$1.readFile(file, "utf-8");
 	const lines = [];
 	for (const raw of data.split("\n")) {
 		const trimmed = raw.trim();
@@ -52178,7 +52190,7 @@ async function findSubagentRollout(parentFile, threadId) {
 	async function walk(dir) {
 		let entries;
 		try {
-			entries = await fs.readdir(dir, { withFileTypes: true });
+			entries = await fs$1.readdir(dir, { withFileTypes: true });
 		} catch {
 			return;
 		}
@@ -52421,28 +52433,35 @@ async function runHook() {
 	try {
 		hookInput = await readStdin();
 	} catch (error$1) {
+		auditLog(`skip empty-or-invalid-stdin: ${error$1 instanceof Error ? error$1.message : "unknown"}`);
 		return;
 	}
 	const config$1 = await getConfig();
 	setDebug(config$1.debug);
 	failOnError = config$1.fail_on_error;
+	auditLog(`start transcript=${hookInput.transcript_path ?? ""} enabled=${config$1.enabled}`);
 	if (!config$1.enabled) {
 		debugLog("tracing disabled (set TRACE_TO_LANGFUSE=false to disable)");
+		auditLog("skip disabled");
 		return;
 	}
 	if (!canExportTraces(config$1)) {
 		debugLog("missing ingest token or LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY; skipping");
+		auditLog("skip missing-credentials");
 		return;
 	}
 	if (!hookInput.transcript_path) {
 		debugLog("hook payload missing transcript_path; skipping");
+		auditLog("skip missing-transcript_path");
 		return;
 	}
 	const instrumentation = setupInstrumentation(config$1);
 	try {
 		await convertRollout(hookInput.transcript_path, { config: config$1 });
+		auditLog("convert-ok");
 	} catch (error$1) {
 		debugLog("failed to convert rollout:", error$1);
+		auditLog(`convert-error: ${error$1 instanceof Error ? error$1.message : "unknown"}`);
 		if (config$1.fail_on_error) throw error$1;
 	} finally {
 		try {
