@@ -7,8 +7,10 @@
     {
       "name": "metaverse-antennae",
       "source": {
-        "source": "local",
-        "path": "./plugins/metaverse-antennae"
+        "source": "npm",
+        "package": "@metaapp233/metaverse-antennae",
+        "version": "dev-test-codex-ztb",
+        "registry": "https://localhost:4873"
       },
       "policy": {
         "installation": "AVAILABLE",
