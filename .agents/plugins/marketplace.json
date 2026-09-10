@@ -8,8 +8,8 @@
       "name": "metaverse-antennae",
       "source": {
         "source": "npm",
-        "package": "@metaapp233/metaverse-antennae",
-        "version": "dev-test-codex-ztb",
+        "package": "@metaapp233/metaverse-antennae-dev-test_codex-ztb",
+        "version": "dev-current",
         "registry": "https://localhost:4873"
       },
       "policy": {
