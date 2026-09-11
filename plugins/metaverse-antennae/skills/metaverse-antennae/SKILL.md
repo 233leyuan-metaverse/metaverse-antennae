@@ -7,6 +7,8 @@ description: Inspect, build, modify, diagnose, and verify content in the Metaver
 
 Operate the live editor through named semantic tools. Treat tool schemas, lookup results, and live inspect results as authoritative. Never invent object IDs, resource IDs, property paths, event APIs, or ability IDs.
 
+Project declaration paths in this Skill and domain references use `DataFile/docs` by default. Only when that entire directory is absent or contains no `.data` files, use the same current project's `DataFile/userComponent/docs` instead, preserving `authoring`, `ugc` and `engine` subpaths. Authoring Search/Doc selects this root automatically. For direct project-source reads, establish the root with `pattern="*.data"` and search file counts before using the domain paths. A missing symbol, unreadable/skipped files, truncated search, or read/transport failure does not justify fallback. Never mix the two roots; use actual returned paths and re-resolve after project/session changes.
+
 When an approved fallback route uses `catalog_search`, pass `kinds` only as a non-empty native structured array such as `["operation"]`. Omit `kinds` to search all Catalog kinds. Never pass a scalar, comma-separated value, empty array, or JSON-encoded array string, and never repair validation failure by changing an array argument into a string.
 
 ## Core workflow
