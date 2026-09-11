@@ -1,0 +1,25 @@
+{
+  "name": "tracing",
+  "version": "0.1.3",
+  "description": "Trace OpenAI Codex Antennae sessions to Langfuse without per-user API keys.",
+  "author": {
+    "name": "Metaverse Antennae"
+  },
+  "homepage": "http://gitlab.appshahe.com/metaApp/metaverse/server/micro-service/metaverse-antennae",
+  "repository": "http://gitlab.appshahe.com/metaApp/metaverse/server/micro-service/metaverse-antennae",
+  "license": "MIT",
+  "keywords": ["codex", "hooks", "langfuse", "observability", "tracing", "antennae"],
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "Antennae Tracing",
+    "shortDescription": "Trace Antennae Codex sessions to Langfuse",
+    "longDescription": "Uploads completed OpenAI Codex rollout transcripts to Langfuse after the session calls Antennae MCP, so teams can inspect those sessions as traces: agent turns, model calls, tool executions, token usage, and subagent threads. Derived from the Langfuse Codex observability plugin (MIT).",
+    "developerName": "Metaverse Antennae",
+    "category": "Coding",
+    "capabilities": ["Read"],
+    "websiteURL": "https://langfuse.com",
+    "privacyPolicyURL": "https://langfuse.com/privacy",
+    "termsOfServiceURL": "https://langfuse.com/terms",
+    "brandColor": "#0A60B5"
+  }
+}

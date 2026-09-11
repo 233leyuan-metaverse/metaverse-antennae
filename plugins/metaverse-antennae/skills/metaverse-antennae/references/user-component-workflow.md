@@ -22,12 +22,18 @@ Set `replicated: true` or `false` on a `properties` entry or an incremental `req
 
 Read only what the requested behavior needs:
 
-1. Treat every `DataFile/userComponent/docs/**/*.data` file in the current project as part of the sole public API contract. Search `DataFile/userComponent/docs/ugc` first with `pattern="*.data"`: read the relevant domain file, then `common.data` and `decorate.data` only as needed. If a UGC signature references `mw.Vector`, `mw.Rotation`, or another `mw.*` symbol, or the task requires an engine-level API, search `DataFile/userComponent/docs/engine` with the same pattern and read only the matching declarations. If the current workspace is that UGC project, use workspace-relative reads; otherwise use `code.search_project_source` and `code.read_project_source`. Do not substitute declarations from the MCP package, an installed plugin cache, a sibling checkout, Memory Hub, or model memory.
+Resolve the declaration root first: prefer `DataFile/docs`; only if it is absent or has no `.data` files anywhere beneath it, use `DataFile/userComponent/docs` in the same verified project. All `DataFile/docs` paths below and in domain Skills refer to that selected root, including `ugc` and `engine`. Do not fall back for missing symbols, malformed declarations, skipped/unreadable files, truncated searches or transport failures, and do not merge roots. Project-source searches must use `pattern="*.data"`; zero text matches alone does not prove there are no declaration files—check `scanned_file_count` and `skipped_file_count`. Authoring Search/Doc performs root selection automatically.
+
+1. Treat every `DataFile/docs/**/*.data` file in the current project as part of the sole public API contract. Search `DataFile/docs/ugc` first with `pattern="*.data"`: read the relevant domain file, then `common.data` and `decorate.data` only as needed. If a UGC signature references `mw.Vector`, `mw.Rotation`, or another `mw.*` symbol, or the task requires an engine-level API, search `DataFile/docs/engine` with the same pattern and read only the matching declarations. If the current workspace is that UGC project, use workspace-relative reads; otherwise use `code.search_project_source` and `code.read_project_source`. Do not substitute declarations from the MCP package, an installed plugin cache, a sibling checkout, Memory Hub, or model memory.
 2. Discover existing components with `inspect(projection="user_components")`. Read a candidate with `code.read_component` before deciding to create or replace anything.
 3. Use the component's exact declaration and, once generated, its read-only template for lifecycle hooks and custom events. Follow the initial creation/write sequence above when no template exists yet. If the available evidence does not prove a required name, signature, cleanup method, or type, stop only that unsupported part and report a capability gap.
 4. Read `dist/game.js` only through the exact bounded project-source escape hatch when declarations are missing or conflict with runtime behavior, or a runtime stack requires bundle context. A bundle-only symbol is never authorization to call an undeclared API.
 
-Never discover the UGC project by scanning unrelated disks or constructing a guessed absolute path. Direct reads are allowed only when `DataFile/userComponent/docs` resolves inside the current verified UGC workspace. Otherwise the editor-connected code Toolset is the authoritative project resolver and bounded read path.
+Never discover the UGC project by scanning unrelated disks or constructing a guessed absolute path. Direct reads are allowed only when `DataFile/docs` resolves inside the current verified UGC workspace. Otherwise the editor-connected code Toolset is the authoritative project resolver and bounded read path.
+
+## Entity ownership
+
+Use `IScene.createEntity(...)` to create gameplay entities and `IEntity.destroy(...)` to destroy them when those signatures are declared. Do not bypass the entity system with raw engine spawn/destroy calls unless the UGC declaration explicitly requires a non-entity engine object.
 
 ## Component design
 
