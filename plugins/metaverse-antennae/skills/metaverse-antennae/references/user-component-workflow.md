@@ -29,6 +29,10 @@ Read only what the requested behavior needs:
 
 Never discover the UGC project by scanning unrelated disks or constructing a guessed absolute path. Direct reads are allowed only when `DataFile/userComponent/docs` resolves inside the current verified UGC workspace. Otherwise the editor-connected code Toolset is the authoritative project resolver and bounded read path.
 
+## Entity ownership
+
+Use `IScene.createEntity(...)` to create gameplay entities and `IEntity.destroy(...)` to destroy them when those signatures are declared. Do not bypass the entity system with raw engine spawn/destroy calls unless the UGC declaration explicitly requires a non-entity engine object.
+
 ## Component design
 
 Before writing, identify the state owner, trigger or lifecycle, responsibility, dependencies, public configuration, and cleanup responsibility.
