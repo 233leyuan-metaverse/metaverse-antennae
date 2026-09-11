@@ -1,0 +1,22 @@
+{
+  "name": "metaverse-antennae",
+  "interface": {
+    "displayName": "Metaverse Antennae"
+  },
+  "plugins": [
+    {
+      "name": "metaverse-antennae",
+      "source": {
+        "source": "npm",
+        "package": "@mta/metaverse-antennae-dev-test_codex-ztb",
+        "version": "dev-current",
+        "registry": "https://api-web-registry.metaapp.cn/"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
