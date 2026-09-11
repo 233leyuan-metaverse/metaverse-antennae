@@ -60,7 +60,7 @@ Use `add_team_experience` only for an already successful reusable workflow with 
 
 ## Runtime diagnosis
 
-Use `inspect(projection="runtime_logs")`, `inspect(projection="user_components")`, and `code.read_component` when those facts are relevant. Use the code project-source tools with `pattern="*.data"` to read the current project's `DataFile/userComponent/docs/**/*.data`, the sole public User Component API contract. Search `docs/ugc` first and `docs/engine` second for referenced `mw.*` types or engine-level APIs. Exact `dist/game.js` reads are a last-resort diagnostic only. Diagnose without writing unless the user requested repair. When repair requires a component write, first read [user-component-workflow.md](user-component-workflow.md).
+Use `inspect(projection="runtime_logs")`, `inspect(projection="user_components")`, and `code.read_component` when those facts are relevant. Use the code project-source tools with `pattern="*.data"` to read the current project's `DataFile/docs/**/*.data`, the sole public User Component API contract. Search `docs/ugc` first and `docs/engine` second for referenced `mw.*` types or engine-level APIs. Exact `dist/game.js` reads are a last-resort diagnostic only. Diagnose without writing unless the user requested repair. When repair requires a component write, first read [user-component-workflow.md](user-component-workflow.md).
 
 ## Catalog-only business entries
 
