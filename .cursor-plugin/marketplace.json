@@ -1,0 +1,13 @@
+{
+  "name": "metaverse-antennae",
+  "owner": {
+    "name": "Metaverse Antennae"
+  },
+  "plugins": [
+    {
+      "name": "metaverse-antennae",
+      "source": "./clients/cursor",
+      "version": "0.5.1"
+    }
+  ]
+}
