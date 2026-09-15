@@ -40,6 +40,11 @@ public static class AntennaeCursorHost
         }
     }
     public static int Run(string exe, string cwd) {
+        // .NET Framework's Process.StandardInput writer inherits Console input
+        // encoding and can emit its BOM even when we use BaseStream. Keep both
+        // console encodings BOM-free before creating the byte-protocol child.
+        Console.InputEncoding = new System.Text.UTF8Encoding(false);
+        Console.OutputEncoding = new System.Text.UTF8Encoding(false);
         using (var process = new Process()) {
             process.StartInfo = new ProcessStartInfo(exe) { WorkingDirectory = cwd, UseShellExecute = false,
                 CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };

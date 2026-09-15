@@ -4,6 +4,7 @@ param([switch]$PrepareOnly, [string]$CacheRoot = '')
 # This is a packaging bootstrap, not a second MCP server. stdout belongs to MCP.
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+[Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
 $PluginRoot = Split-Path -Parent $PSScriptRoot
 $Spec = Get-Content -Raw -LiteralPath (Join-Path $PluginRoot 'runtime-lock.json') | ConvertFrom-Json
 $Registry = 'https://api-web-registry.metaapp.cn'

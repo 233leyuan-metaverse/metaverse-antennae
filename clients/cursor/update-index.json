@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "bootstrapVersion": 1,
+  "repository": "233leyuan-metaverse/metaverse-antennae",
+  "packageBranch": "test/codex-ztb",
+  "branchId": "test_codex-ztb",
+  "package": "@mta/metaverse-antennae-dev-test_codex-ztb",
+  "version": "0.5.3",
+  "files": {
+    ".cursor-plugin/plugin.json": "05cfdc72b7c87c8c3a038bd236b23f494ab365e15bf2ee52c43989674792cccb",
+    ".gitattributes": "308a40fa1d89ae5ea4390b4c9b46a0108b09f171f07898f25d451fa0c69c4e9f",
+    "mcp.json": "d2ef83cbd2d2fd3d441ab7d1b779cefb1d3958aeefd58e2af8d8faf0ccba5a5a",
+    "runtime-lock.json": "495eb02ba2760c7172ca57a634b55b8275e3719fa185e5f91e31268ced083cd3",
+    "scripts/install-cursor.ps1": "9544cf247a1294e8e097967fe69a528288a918e8b4a56399027974843d83e061",
+    "scripts/runtime-host.cs": "810ec762c400928749f09396b2e18f453bc7d3749e840fd1858a5b95d6a590ed",
+    "scripts/start-mcp.ps1": "3529e987f1490ead7e06d402805beb21a91345b948608ea01f14ffcdf64e44e6",
+    "scripts/update-lib.ps1": "f0623119d656be21cc9fbd22d843cfb7e7bd3069ac4e463cfeb22954343303d4",
+    "scripts/workspace-open.ps1": "d3ecfb9a5f71a83338dd0cbb6005263bba7abe87116a3d476b941df690233b1b",
+    "skills/metaverse-antennae/agents/openai.yaml": "7124923a7fccbbc811fd0cf913b106de83eaf503ccd45e8cb31f9112943f1897",
+    "skills/metaverse-antennae/references/tool-routing.md": "30307ad6d816d772bd668f1f4343ab5a5fc01531c68660394e7882fedea38f9a",
+    "skills/metaverse-antennae/references/user-component-workflow.md": "b5f111551adbdc184df3fbf9e0258729cd85fe16fb983684b4bc7690a047491c",
+    "skills/metaverse-antennae/references/verification.md": "f981baeedaf0947bce39ed9fcb2f719cf0d8ab45aa594a5ce3432b0b5fe2e908",
+    "skills/metaverse-antennae/SKILL.md": "a76ef84b4addc1db82ce4da6e60f5d206d835d28dcbe8fdddeb728c1ed9fa0a2"
+  }
+}
