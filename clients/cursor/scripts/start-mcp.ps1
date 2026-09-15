@@ -85,7 +85,24 @@ function Remove-OwnedDirectory([string]$Path, [bool]$IsStage = $false) {
     Remove-Item -LiteralPath $full -Force -Recurse
 }
 
+function Resolve-NpmToolchain {
+    # Cursor prepends its own standalone node.exe to PATH. Select the first
+    # complete Node/npm installation, not merely the first Node executable.
+    foreach ($command in @(Get-Command node.exe -CommandType Application -All -ErrorAction SilentlyContinue)) {
+        $node = $command.Source
+        $npm = Join-Path (Split-Path -Parent $node) 'node_modules/npm/bin/npm-cli.js'
+        if (Test-Path -LiteralPath $npm -PathType Leaf) {
+            return [PSCustomObject]@{ Node = $node; Npm = $npm }
+        }
+    }
+    throw 'No Node.js installation with npm found on PATH; install Node.js with npm and fully restart Cursor'
+}
+
 function Install-LockedPayload([string]$Stage) {
+    # Fail before downloading if no complete toolchain is available. Cached
+    # payloads bypass this function and still need neither Node nor npm.
+    $toolchain = Resolve-NpmToolchain
+    [Console]::Error.WriteLine('[antennae] Downloading locked runtime ' + $Spec.version)
     $archive = Join-Path $Stage 'payload.tgz'
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     $request = [Net.HttpWebRequest]::Create([uri]$Spec.tarball)
@@ -115,18 +132,15 @@ function Install-LockedPayload([string]$Stage) {
 
     # Use the existing npm tool only to safely extract this verified local package.
     # Empty configs + offline + ignore-scripts: no publisher credentials or install hooks.
-    $node = (Get-Command node.exe -ErrorAction Stop).Source
-    $npm = Join-Path (Split-Path -Parent $node) 'node_modules/npm/bin/npm-cli.js'
-    if (-not (Test-Path -LiteralPath $npm -PathType Leaf)) { throw 'Install Node.js with npm before using this plugin' }
     $emptyUser = Join-Path $Stage 'empty-user.npmrc'
     $emptyGlobal = Join-Path $Stage 'empty-global.npmrc'
     [IO.File]::WriteAllText($emptyUser, '')
     [IO.File]::WriteAllText($emptyGlobal, '')
-    $arguments = @($npm, 'install', $archive, '--prefix', $Stage, '--ignore-scripts', '--offline',
+    $arguments = @($toolchain.Npm, 'install', $archive, '--prefix', $Stage, '--ignore-scripts', '--offline',
         '--no-audit', '--no-fund', '--no-save', '--package-lock=false', '--global=false',
         ('--registry=' + $Registry), ('--userconfig=' + $emptyUser), ('--globalconfig=' + $emptyGlobal),
         ('--cache=' + (Join-Path $Stage 'npm-cache')))
-    $code = [AntennaeCursorHost]::Install($node, $arguments, $Stage, (Join-Path $Stage 'npm.log'))
+    $code = [AntennaeCursorHost]::Install($toolchain.Node, $arguments, $Stage, (Join-Path $Stage 'npm.log'))
     if ($code -ne 0) { throw "npm extraction failed ($code); no installed slot was changed" }
     $payload = Join-Path $Stage ('node_modules/' + $Spec.package)
     Assert-Payload $payload
@@ -215,7 +229,6 @@ try {
         $null = New-Item -ItemType Directory -Path $StageRoot
         @{ package = $Spec.package; branch = $Spec.packageBranch } | ConvertTo-Json |
             Set-Content -LiteralPath (Join-Path $StageRoot 'owner.json') -Encoding UTF8
-        [Console]::Error.WriteLine('[antennae] Downloading locked runtime ' + $Spec.version)
         $payload = Install-LockedPayload $StageRoot
         $ready = Join-Path $StageRoot 'ready'
         $null = New-Item -ItemType Directory -Path $ready
