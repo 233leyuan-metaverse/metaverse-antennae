@@ -8,7 +8,7 @@
       "name": "metaverse-antennae",
       "source": {
         "source": "npm",
-        "package": "@mta/metaverse-antennae-dev-test_codex-ztb",
+        "package": "@mta/metaverse-antennae-dev-dev_dev-40-1",
         "version": "dev-current",
         "registry": "https://api-web-registry.metaapp.cn/"
       },
@@ -22,7 +22,7 @@
       "name": "tracing",
       "source": {
         "source": "npm",
-        "package": "@mta/metaverse-antennae-tracing-dev-test_codex-ztb",
+        "package": "@mta/metaverse-antennae-tracing-dev-dev_dev-40-1",
         "version": "dev-current",
         "registry": "https://api-web-registry.metaapp.cn/"
       },
