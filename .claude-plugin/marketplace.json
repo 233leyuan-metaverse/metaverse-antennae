@@ -1,0 +1,19 @@
+{
+  "name": "metaverse-antennae-dev-dev_dev-40-1",
+  "owner": {
+    "name": "Metaverse Antennae"
+  },
+  "description": "Metaverse Antennae for Claude Code (dev/dev-40-1).",
+  "plugins": [
+    {
+      "name": "metaverse-antennae",
+      "description": "Metaverse Antennae editor MCP and on-demand User Component guidance (Windows x64).",
+      "source": {
+        "source": "npm",
+        "package": "@mta/metaverse-antennae-claude-code-dev-dev_dev-40-1",
+        "version": "dev-current",
+        "registry": "https://api-web-registry.metaapp.cn/"
+      }
+    }
+  ]
+}
